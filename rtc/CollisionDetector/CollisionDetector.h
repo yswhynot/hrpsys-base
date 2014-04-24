@@ -25,7 +25,7 @@
 #include "TimedPosture.h"
 #include "interpolator.h"
 
-#include "VclipLinkPair.h"
+#include "FCLLinkPair.h"
 #include "CollisionDetectorService_impl.h"
 
 // Service implementation headers
@@ -151,16 +151,16 @@ class CollisionDetector
 
   
   // </rtc-template>
-  void setupVClipModel(hrp::BodyPtr i_body);
-  void setupVClipModel(hrp::Link *i_link);
+  void setupFCLModel(hrp::BodyPtr i_body);
+  void setupFCLModel(hrp::Link *i_link);
 
  private:
   class CollisionLinkPair {
   public:
-      CollisionLinkPair(VclipLinkPairPtr i_pair) : point0(hrp::Vector3(0,0,0)), point1(hrp::Vector3(0,0,0)), distance(0) {
+      CollisionLinkPair(FCLLinkPairPtr i_pair) : point0(hrp::Vector3(0,0,0)), point1(hrp::Vector3(0,0,0)), distance(0) {
           pair = i_pair;
       }
-      VclipLinkPairPtr pair;
+      FCLLinkPairPtr pair;
       hrp::Vector3 point0, point1;
       double distance;
   };
@@ -168,7 +168,7 @@ class CollisionDetector
   LogManager<TimedPosture> m_log; 
   SDLwindow m_window;
   GLbody *m_glbody;
-  std::vector<Vclip::Polyhedron *> m_VclipLinks;
+  std::vector<FCLModel *> m_FCLModels;
   bool m_use_viewer;
   hrp::BodyPtr m_robot;
   std::map<std::string, CollisionLinkPair *> m_pair;
