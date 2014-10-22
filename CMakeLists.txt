@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.4)
+project(hrpsys)
 
 if(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
@@ -52,7 +53,7 @@ if(ENABLE_INSTALL_RPATH)
   set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/../../../lib:${OPENHRP_LIBRARY_DIRS}")
 endif()
 
-option(COMPILE_JAVA_STUFF "Compile java stuff" ON)
+option(COMPILE_JAVA_STUFF "Compile java stuff" OFF)
 if(COMPILE_JAVA_STUFF)
   set(JAVAC javac)
   set(JAR jar)
@@ -68,7 +69,7 @@ if(COMPILE_JAVA_STUFF)
   set(javac_flags -target ${Java_VERSION_MAJOR}.${Java_VERSION_MINOR} -d . -sourcepath src)
 endif()
 
-if(NOT CMAKE_BUILD_TYPE)
+if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL None)
   set(
     CMAKE_BUILD_TYPE Release CACHE STRING
     "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
@@ -83,7 +84,7 @@ set(CPACK_PACKAGE_VENDOR "AIST")
 set(CPACK_PACKAGE_CONTACT "Fumio Kanehiro <f-kanehiro@aist.go.jp>")
 set(CPACK_PACKAGE_VERSION_MAJOR 315)
 set(CPACK_PACKAGE_VERSION_MINOR 2)
-set(CPACK_PACKAGE_VERSION_PATCH 6)
+set(CPACK_PACKAGE_VERSION_PATCH 8)
 execute_process(
   COMMAND date +%Y%m%d%H%M
   OUTPUT_VARIABLE CPACK_PACKAGE_DATE
@@ -169,3 +170,25 @@ if (NOT QNXNTO)
 endif()
 add_subdirectory(sample)
 add_subdirectory(test)
+
+#if catkin environment
+string(REGEX MATCH "catkin" need_catkin $ENV{_})
+if(need_catkin OR "${CATKIN_BUILD_BINARY_PACKAGE}")
+  install(FILES package.xml DESTINATION share/hrpsys/)
+  install(CODE "
+execute_process(COMMAND cmake -E make_directory lib WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/share/hrpsys)
+file(GLOB targets RELATIVE \${CMAKE_CURRENT_BINARY_DIR}/lib/ \${CMAKE_CURRENT_BINARY_DIR}/lib/*.so)
+message(\"\${targets}\")
+foreach(target \${targets})
+  if(\${target} STREQUAL \"hrpsysext.so\")
+  elseif(\${target} STREQUAL \"libhrpIo.so\" OR \${target} STREQUAL \"libhrpsysBaseStub.so\" OR \${target} STREQUAL \"libhrpsysUtil.so\")
+    message(\"cmake -E create_symlink ../../../../../lib/\${target} \${target} WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/share/hrpsys/lib\")
+    execute_process(COMMAND cmake -E create_symlink ../../../../../lib/\${target} \${target} WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/share/hrpsys/lib)
+  else()
+    message(\"cmake -E create_symlink ../../../lib/\${target} \${target} WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/share/hrpsys/lib\")
+    execute_process(COMMAND cmake -E create_symlink ../../../lib/\${target} \${target} WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/share/hrpsys/lib)
+  endif()
+endforeach()")
+  install(DIRECTORY test launch DESTINATION share/hrpsys USE_SOURCE_PERMISSIONS)
+  install(DIRECTORY rtc ec DESTINATION share/hrpsys/src USE_SOURCE_PERMISSIONS)
+endif()

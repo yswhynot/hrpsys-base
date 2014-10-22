@@ -206,12 +206,16 @@ RTC::ReturnCode_t ImpedanceController::onActivated(RTC::UniqueId ec_id)
     return RTC::RTC_OK;
 }
 
-/*
-  RTC::ReturnCode_t ImpedanceController::onDeactivated(RTC::UniqueId ec_id)
-  {
-  return RTC::RTC_OK;
+RTC::ReturnCode_t ImpedanceController::onDeactivated(RTC::UniqueId ec_id)
+{
+  std::cout << "ImpedanceController::onDeactivated(" << ec_id << ")" << std::endl;
+  Guard guard(m_mutex);
+  for ( std::map<std::string, ImpedanceParam>::iterator it = m_impedance_param.begin(); it != m_impedance_param.end(); it++ ) {
+    deleteImpedanceController(it->first);
+    m_impedance_param[it->first].transition_count = 1;
   }
-*/
+  return RTC::RTC_OK;
+}
 
 #define DEBUGP ((m_debugLevel==1 && loop%200==0) || m_debugLevel > 1 )
 RTC::ReturnCode_t ImpedanceController::onExecute(RTC::UniqueId ec_id)
@@ -456,7 +460,8 @@ RTC::ReturnCode_t ImpedanceController::onExecute(RTC::UniqueId ec_id)
             // if ( std::fabs(vel_r.norm() - 0.0) < ::std::numeric_limits<double>::epsilon() ) {
             if ( vel_r.norm() != 0.0 ) {
               hrp::Matrix33 tmpm;
-              rats::rotm3times(tmpm, rats::rotation_matrix(vel_r.norm(), vel_r.normalized()), param.current_r0);
+              Eigen::AngleAxis<double> tmpr(vel_r.norm(), vel_r.normalized());
+              rats::rotm3times(tmpm, tmpr.toRotationMatrix(), param.current_r0);
               param.current_r1 = tmpm;
             } else {
               param.current_r1 = param.current_r0;

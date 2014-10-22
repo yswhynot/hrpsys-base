@@ -387,6 +387,8 @@ class HrpsysConfigurator:
 
         # connection for te
         if self.te:
+            connectPorts(self.rh.port("q"), self.te.port("qCurrentIn"))
+            connectPorts(self.sh.port("qOut"), self.te.port("qRefIn"))
             if self.tf:
                 connectPorts(self.tf.port("tauOut"), self.te.port("tauIn"))
             else:
@@ -395,14 +397,8 @@ class HrpsysConfigurator:
 
         # connection for tl
         if self.tl:
-            if self.tf:
-                connectPorts(self.tf.port("tauOut"), self.tl.port("tauIn"))
-            else:
-                connectPorts(self.rh.port("tau"), self.tl.port("tauIn"))
             if self.te:
                 connectPorts(self.te.port("tempOut"), self.tl.port("tempIn"))
-            connectPorts(self.rh.port("q"), self.tl.port("qCurrentIn"))
-            # qRef is connected as joint angle controller
 
         # connection for tc
         if self.tc:
@@ -453,11 +449,14 @@ class HrpsysConfigurator:
         Create components(plugins) in getRTCList()
         '''
         for rn in self.getRTCList():
-            rn2 = 'self.' + rn[0]
-            if eval(rn2) == None:
-                create_str = "[self." + rn[0] + ", self." + rn[0] + "_svc, self." + rn[0] + "_version] = self.createComp(\"" + rn[1] + "\",\"" + rn[0] + "\")"
-                print self.configurator_name, "  eval : ", create_str
-                exec(create_str)
+            try:
+                rn2 = 'self.' + rn[0]
+                if eval(rn2) == None:
+                    create_str = "[self." + rn[0] + ", self." + rn[0] + "_svc, self." + rn[0] + "_version] = self.createComp(\"" + rn[1] + "\",\"" + rn[0] + "\")"
+                    print self.configurator_name, "  eval : ", create_str
+                    exec(create_str)
+            except Exception, e:
+                print self.configurator_name, '\033[31mFail to createComps',e,'\033[0m'
 
 
     def findComp(self, compName, instanceName, max_timeout_count=10):
@@ -569,7 +568,10 @@ class HrpsysConfigurator:
         '''
         ret = [self.rh]
         for r in map(lambda x: 'self.' + x[0], self.getRTCList()):
-            ret.append(eval(r))
+            try:
+                ret.append(eval(r))
+            except Exception, e:
+                print self.configurator_name, '\033[31mFail to getRTCInstanceList',e,'\033[0m'
         return ret
 
     # public method to get bodyInfo
@@ -645,6 +647,8 @@ class HrpsysConfigurator:
             self.connectLoggerPort(self.abc, 'zmpRef')
             self.connectLoggerPort(self.abc, 'baseTformOut')
             self.connectLoggerPort(self.abc, 'q')
+            self.connectLoggerPort(self.abc, 'contactStates')
+            self.connectLoggerPort(self.abc, 'controlSwingSupportTime')
         if self.st != None:
             self.connectLoggerPort(self.st, 'zmp')
             self.connectLoggerPort(self.st, 'originRefZmp')
@@ -662,6 +666,7 @@ class HrpsysConfigurator:
             self.connectLoggerPort(self.st, 'actBaseRpy')
             self.connectLoggerPort(self.st, 'currentBasePos')
             self.connectLoggerPort(self.st, 'currentBaseRpy')
+            self.connectLoggerPort(self.st, 'debugData')
         if self.rh != None:
             self.connectLoggerPort(self.rh, 'emergencySignal',
                                    'emergencySignal')

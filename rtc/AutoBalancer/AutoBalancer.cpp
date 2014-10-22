@@ -196,8 +196,17 @@ RTC::ReturnCode_t AutoBalancer::onInitialize()
         contact_states_index_map.insert(std::pair<std::string, size_t>(ee_name, i));
       }
       m_contactStates.data.length(num);
+      if (ikp.find("rleg") != ikp.end() && ikp.find("lleg") != ikp.end()) {
+        m_contactStates.data[contact_states_index_map["rleg"]] = true;
+        m_contactStates.data[contact_states_index_map["lleg"]] = true;
+      }
+      if (ikp.find("rarm") != ikp.end() && ikp.find("larm") != ikp.end()) {
+        m_contactStates.data[contact_states_index_map["rarm"]] = false;
+        m_contactStates.data[contact_states_index_map["larm"]] = false;
+      }
+      m_controlSwingSupportTime.data.length(num);
+      for (size_t i = 0; i < num; i++) m_controlSwingSupportTime.data[i] = 0.0;
     }
-    m_controlSwingSupportTime.data = 0.0;
 
     // ref force port
     coil::vstring virtual_force_sensor = coil::split(prop["virtual_force_sensor"], ",");
@@ -268,12 +277,17 @@ RTC::ReturnCode_t AutoBalancer::onActivated(RTC::UniqueId ec_id)
     return RTC::RTC_OK;
 }
 
-/*
-  RTC::ReturnCode_t AutoBalancer::onDeactivated(RTC::UniqueId ec_id)
-  {
-  return RTC::RTC_OK;
+RTC::ReturnCode_t AutoBalancer::onDeactivated(RTC::UniqueId ec_id)
+{
+  std::cout << "AutoBalancer::onDeactivated(" << ec_id << ")" << std::endl;
+  Guard guard(m_mutex);
+  if (control_mode == MODE_ABC) {
+    stopABCparam();
+    control_mode = MODE_IDLE;
+    transition_count = 1; // sync in one controller loop
   }
-*/
+  return RTC::RTC_OK;
+}
 
 #define DEBUGP ((m_debugLevel==1 && loop%200==0) || m_debugLevel > 1 )
 //#define DEBUGP2 ((loop%200==0))
@@ -356,7 +370,9 @@ RTC::ReturnCode_t AutoBalancer::onExecute(RTC::UniqueId ec_id)
       prev_imu_sensor_vel = imu_sensor_vel;
     }
 
+    m_contactStates.tm = m_qRef.tm;
     m_contactStatesOut.write();
+    m_controlSwingSupportTime.tm = m_qRef.tm;
     m_controlSwingSupportTimeOut.write();
 
     return RTC::RTC_OK;
@@ -447,7 +463,8 @@ void AutoBalancer::getTargetParameters()
       default:
         break;
       }
-      m_controlSwingSupportTime.data = gg->get_current_swing_time();
+      m_controlSwingSupportTime.data[contact_states_index_map["rleg"]] = gg->get_current_swing_time(0);
+      m_controlSwingSupportTime.data[contact_states_index_map["lleg"]] = gg->get_current_swing_time(1);
     } else {
       tmp_fix_coords = fix_leg_coords;
     }
@@ -470,9 +487,8 @@ void AutoBalancer::getTargetParameters()
 
     /* update ref_forces ;; sp's absolute -> rmc's absolute */
     for (size_t i = 0; i < m_ref_forceIn.size(); i++)
-      tmp_fix_coords.rotate_vector(ref_forces[i],
-                                   hrp::Vector3(m_ref_force[i].data[0], m_ref_force[i].data[1], m_ref_force[i].data[2]));
-    tmp_fix_coords.rotate_vector(sbp_offset, hrp::Vector3(sbp_offset));
+      ref_forces[i] = tmp_fix_coords.rot * hrp::Vector3(m_ref_force[i].data[0], m_ref_force[i].data[1], m_ref_force[i].data[2]);
+    sbp_offset = tmp_fix_coords.rot * hrp::Vector3(sbp_offset);
 
     target_root_p = m_robot->rootLink()->p;
     target_root_R = m_robot->rootLink()->R;
@@ -484,8 +500,8 @@ void AutoBalancer::getTargetParameters()
     }
     ikp["rleg"].getRobotEndCoords(rc, m_robot);
     ikp["lleg"].getRobotEndCoords(lc, m_robot);
-    rc.translate(default_zmp_offsets[0]); /* rleg */
-    lc.translate(default_zmp_offsets[1]); /* lleg */
+    rc.pos += rc.rot * default_zmp_offsets[0]; /* rleg */
+    lc.pos += lc.rot * default_zmp_offsets[1]; /* lleg */
     if (gg_is_walking) {
       ref_cog = gg->get_cog();
     } else {
@@ -810,7 +826,11 @@ bool AutoBalancer::setGaitGeneratorParam(const OpenHRP::AutoBalancerService::Gai
     gg->set_default_orbit_type(gait_generator::CYCLOID);
   } else if (i_param.default_orbit_type == OpenHRP::AutoBalancerService::RECTANGLE) {
     gg->set_default_orbit_type(gait_generator::RECTANGLE);
+  } else if (i_param.default_orbit_type == OpenHRP::AutoBalancerService::STAIR) {
+    gg->set_default_orbit_type(gait_generator::STAIR);
   }
+  gg->set_swing_trajectory_delay_time_offset(i_param.swing_trajectory_delay_time_offset);
+  gg->set_stair_trajectory_way_point_offset(hrp::Vector3(i_param.stair_trajectory_way_point_offset[0], i_param.stair_trajectory_way_point_offset[1], i_param.stair_trajectory_way_point_offset[2]));
   return true;
 };
 
@@ -826,7 +846,12 @@ bool AutoBalancer::getGaitGeneratorParam(OpenHRP::AutoBalancerService::GaitGener
     i_param.default_orbit_type = OpenHRP::AutoBalancerService::CYCLOID;
   } else if (gg->get_default_orbit_type() == gait_generator::RECTANGLE) {
     i_param.default_orbit_type = OpenHRP::AutoBalancerService::RECTANGLE;
+  } else if (gg->get_default_orbit_type() == gait_generator::STAIR) {
+    i_param.default_orbit_type = OpenHRP::AutoBalancerService::STAIR;
   }
+  hrp::Vector3 tmpv = gg->get_stair_trajectory_way_point_offset();
+  for (size_t i = 0; i < 3; i++) i_param.stair_trajectory_way_point_offset[i] = tmpv(i);
+  i_param.swing_trajectory_delay_time_offset = gg->get_swing_trajectory_delay_time_offset();
   return true;
 };
 
