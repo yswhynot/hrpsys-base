@@ -1,4 +1,4 @@
-1;3201;0cadd_subdirectory(NullComponent)
+add_subdirectory(NullComponent)
 add_subdirectory(RobotHardware)
 add_subdirectory(StateHolder)
 add_subdirectory(WavPlayer)
