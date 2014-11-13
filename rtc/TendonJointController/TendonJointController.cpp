@@ -19,7 +19,7 @@ static const char* tendonjointcontroller_spec[] =
   {
     "implementation_id", "TendonJointController",
     "type_name",         "TendonJointController",
-    "description",       "null component",
+    "description",       "Tendon Joint Controller",
     "version",           HRPSYS_PACKAGE_VERSION,
     "vendor",            "AIST",
     "category",          "example",
