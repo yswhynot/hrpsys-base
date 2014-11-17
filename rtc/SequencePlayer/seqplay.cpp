@@ -342,6 +342,7 @@ void seqplay::get(double *o_q, double *o_zmp, double *o_accel,
 		if (gi){
 			gi->get(o_q, v);
 			if (gi->state == groupInterpolator::removed){
+				std::cerr << ";;;;;; remove interp ;;;;;;" << std::endl;
 				groupInterpolators.erase(it++);
 				delete gi;
 				continue;
@@ -407,6 +408,7 @@ bool seqplay::addJointGroup(const char *gname, const std::vector<int>& indices)
 		std::cerr << "[addJointGroup] group name " << gname << " is already installed" << std::endl;
 		return false;
 	}
+	std::cerr << "[addJointGroup] group name " << gname << " has added." << std::endl;
 	i = new groupInterpolator(indices, interpolators[Q]->deltaT());
 	groupInterpolators[gname] = i;
 	return true;
@@ -433,6 +435,7 @@ bool seqplay::removeJointGroup(const char *gname, double time)
 	groupInterpolator *i = groupInterpolators[gname];
 	if (i){
 		i->remove(time);
+		std::cerr << "[removeJointGroup] group name " << gname << " will be removed ." << std::endl;
 		return true;
 	}else{
 		std::cerr << "[removeJointGroup] group name " << gname << " is not installed" << std::endl;
@@ -470,6 +473,7 @@ bool seqplay::setJointAnglesOfGroup(const char *gname, const double *i_qRef, dou
 	groupInterpolator *i = groupInterpolators[gname];
 	if (i){
 		if (i->state == groupInterpolator::created){
+			// first time
 			double q[m_dof], dq[m_dof];
 			interpolators[Q]->get(q, dq, false);
 			std::map<std::string, groupInterpolator *>::iterator it;
@@ -478,6 +482,7 @@ bool seqplay::setJointAnglesOfGroup(const char *gname, const double *i_qRef, dou
 				if (gi)	gi->get(q, dq, false);
 			}
 			double x[i->indices.size()], v[i->indices.size()];
+			// sync ???
 			i->extract(x, q);
 			i->extract(v, dq);
 			i->inter->go(x,v,interpolators[Q]->deltaT());

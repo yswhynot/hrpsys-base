@@ -63,7 +63,9 @@ private:
             delete inter;
         }
         void get(double *full, double *dfull = NULL, bool popp=true){
+            // do nothing
             if (state == created) return;
+            //
             if (state == removing){
                 double x[indices.size()];
                 double v[indices.size()];
@@ -73,8 +75,10 @@ private:
                 }
                 inter->setGoal(x, v, time2remove);
                 time2remove -= inter->deltaT();
+                //
                 if (time2remove <= 0) state = removed;
             }
+
             double x[indices.size()], v[indices.size()];
             inter->get(x, v, popp);
             for (size_t i=0; i<indices.size(); i++){
