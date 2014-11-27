@@ -112,20 +112,25 @@ class AutoBalancer
   // <rtc-template block="inport_declare">
   TimedDoubleSeq m_qRef;
   InPort<TimedDoubleSeq> m_qRefIn;
-  TimedDoubleSeq m_qCurrent;
-  InPort<TimedDoubleSeq> m_qCurrentIn;
+  TimedPoint3D m_basePos;
+  InPort<TimedPoint3D> m_basePosIn;
+  TimedOrientation3D m_baseRpy;
+  InPort<TimedOrientation3D> m_baseRpyIn;
+  TimedPoint3D m_zmp;
+  InPort<TimedPoint3D> m_zmpIn;
+  TimedDoubleSeq m_optionalData;
+  InPort<TimedDoubleSeq> m_optionalDataIn;
   std::vector<TimedDoubleSeq> m_ref_force;
   std::vector<InPort<TimedDoubleSeq> *> m_ref_forceIn;
+  // for debug
+  TimedPoint3D m_cog;
   
   // </rtc-template>
 
   // DataOutPort declaration
   // <rtc-template block="outport_declare">
-  RTC::TimedPoint3D m_zmpRef;
-  TimedPoint3D m_basePos;
-  TimedOrientation3D m_baseRpy;
   OutPort<TimedDoubleSeq> m_qOut;
-  RTC::OutPort<RTC::TimedPoint3D> m_zmpRefOut;
+  RTC::OutPort<RTC::TimedPoint3D> m_zmpOut;
   OutPort<TimedPoint3D> m_basePosOut;
   OutPort<TimedOrientation3D> m_baseRpyOut;
   TimedDoubleSeq m_baseTform;
@@ -136,6 +141,8 @@ class AutoBalancer
   OutPort<TimedBooleanSeq> m_contactStatesOut;
   TimedDoubleSeq m_controlSwingSupportTime;
   OutPort<TimedDoubleSeq> m_controlSwingSupportTimeOut;
+  // for debug
+  OutPort<TimedPoint3D> m_cogOut;
   
   // </rtc-template>
 
@@ -160,6 +167,7 @@ class AutoBalancer
   struct ABCIKparam {
     hrp::Vector3 target_p0, current_p0, target2foot_offset_pos;
     hrp::Matrix33 target_r0, current_r0, target2foot_offset_rot;
+    rats::coordinates target_end_coords, current_end_coords;
     std::string target_name, base_name;
     hrp::JointPathExPtr manip;
     bool is_active;
@@ -195,24 +203,26 @@ class AutoBalancer
   // for gg
   typedef boost::shared_ptr<rats::gait_generator> ggPtr;
   ggPtr gg;
-  bool gg_is_walking, gg_ending, gg_solved;
+  bool gg_is_walking, gg_solved;
   // for abc
-  hrp::Vector3 ref_cog, ref_zmp, prev_ref_zmp, prev_imu_sensor_pos, prev_imu_sensor_vel;
-  int transition_count; // negative value when initing and positive value when deleting
-  enum {MODE_IDLE, MODE_ABC, MODE_SYNC} control_mode, return_control_mode;
+  hrp::Vector3 ref_cog, ref_zmp, prev_imu_sensor_pos, prev_imu_sensor_vel;
+  enum {MODE_IDLE, MODE_ABC, MODE_SYNC_TO_IDLE, MODE_SYNC_TO_ABC} control_mode, return_control_mode;
   std::map<std::string, ABCIKparam> ikp;
   std::map<std::string, size_t> contact_states_index_map;
-  hrp::dvector transition_joint_q, qorg, qrefv;
+  hrp::dvector qorg, qrefv;
   hrp::Vector3 current_root_p, target_root_p;
   hrp::Matrix33 current_root_R, target_root_R;
   rats::coordinates fix_leg_coords;
   std::vector<hrp::Vector3> default_zmp_offsets;
-  double m_dt, move_base_gain, transition_smooth_gain;
+  double m_dt, move_base_gain;
   hrp::BodyPtr m_robot;
   coil::Mutex m_mutex;
 
   double zmp_interpolate_time;
   interpolator *zmp_interpolator;
+  interpolator *transition_interpolator;
+  hrp::Vector3 input_zmp, input_basePos;
+  hrp::Matrix33 input_baseRot;
 
   // static balance point offsetting
   hrp::Vector3 sbp_offset, sbp_cog_offset;

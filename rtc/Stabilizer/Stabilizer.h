@@ -37,7 +37,6 @@
    \brief sample RT component which has one data input port and one data output port
  */
 #define ST_NUM_LEGS 2
-#define ST_MAX_DQ (10 * M_PI / 180)
 
 class Stabilizer
   : public RTC::DataFlowComponentBase
@@ -106,7 +105,6 @@ class Stabilizer
   void getCurrentParameters ();
   void getActualParameters ();
   void getTargetParameters ();
-  hrp::Matrix33 OrientRotationMatrix (const hrp::Matrix33& rot, const hrp::Vector3& axis1, const hrp::Vector3& axis2);
   void calcFootOriginCoords (hrp::Vector3& foot_origin_pos, hrp::Matrix33& foot_origin_rot);
   void sync_2_st ();
   void sync_2_idle();
@@ -127,6 +125,22 @@ class Stabilizer
   inline bool isContact (const size_t idx) // 0 = right, 1 = left
   {
     return (prev_act_force_z[idx] > 25.0);
+  };
+
+  inline bool is_inside_foot (const hrp::Vector3& leg_pos, const bool is_lleg)
+  {
+    if (is_lleg) return leg_pos(1) >= -1 * eefm_leg_inside_margin;
+    else return leg_pos(1) <= eefm_leg_inside_margin;
+  };
+
+  inline bool is_front_of_foot (const hrp::Vector3& leg_pos)
+  {
+    return leg_pos(0) >= eefm_leg_front_margin;
+  };
+
+  inline bool is_rear_of_foot (const hrp::Vector3& leg_pos)
+  {
+    return leg_pos(0) <= -1 * eefm_leg_rear_margin;
   };
 
  protected:
@@ -211,10 +225,6 @@ class Stabilizer
     ST_LEFT = 0,
     ST_RIGHT = 1
   };
-  enum {
-    ST_X = 0,
-    ST_Y = 1
-  };
   struct ee_trans {
     hrp::Vector3 localp;
     hrp::Matrix33 localR;
@@ -238,6 +248,7 @@ class Stabilizer
   hrp::Vector3 ref_zmp, ref_cog, ref_cogvel, prev_ref_cog, prev_ref_zmp;
   hrp::Vector3 act_zmp, act_cog, act_cogvel, rel_act_zmp, prev_act_cog, prev_act_cogvel, act_base_rpy, current_base_rpy, current_base_pos;
   double zmp_origin_off, transition_smooth_gain, prev_act_force_z[2];
+  OpenHRP::StabilizerService::STAlgorithm st_algorithm;
   // TPCC
   double k_tpcc_p[2], k_tpcc_x[2], d_rpy[2], k_brot_p[2], k_brot_tc[2];
   // RUN ST
@@ -248,8 +259,8 @@ class Stabilizer
   double k_run_b[2], d_run_b[2];
   double rdx, rdy, rx, ry;
   // EEFM ST
-  double eefm_k1[2], eefm_k2[2], eefm_k3[2], eefm_zmp_delay_time_const[2];
-  double eefm_rot_damping_gain, eefm_rot_time_const, eefm_pos_damping_gain, eefm_pos_time_const_support, eefm_pos_time_const_swing, eefm_pos_transition_time, eefm_pos_margin_time, eefm_leg_inside_margin;
+  double eefm_k1[2], eefm_k2[2], eefm_k3[2], eefm_zmp_delay_time_const[2], eefm_body_attitude_control_gain[2], eefm_body_attitude_control_time_const[2];
+  double eefm_rot_damping_gain, eefm_rot_time_const, eefm_pos_damping_gain, eefm_pos_time_const_support, eefm_pos_time_const_swing, eefm_pos_transition_time, eefm_pos_margin_time, eefm_leg_inside_margin, eefm_leg_front_margin, eefm_leg_rear_margin, eefm_cogvel_cutoff_freq;
   hrp::Vector3 d_foot_rpy[2], new_refzmp, rel_cog, ref_zmp_aux;
   hrp::Vector3 ref_foot_force[2];
   hrp::Vector3 ref_foot_moment[2];
