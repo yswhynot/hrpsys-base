@@ -1,14 +1,14 @@
 // -*- C++ -*-
 /*!
- * @file  RemoveForceSensorLinkOffset.h
- * @brief null component
+ * @file  AccelerationChecker.h
+ * @brief joint acceleration checker
  * @date  $Date$
  *
  * $Id$
  */
 
-#ifndef REMOVEFORCESENSORLINKOFFSET_H
-#define REMOVEFORCESENSORLINKOFFSET_H
+#ifndef ACCELERATION_CHECKER_H
+#define ACCELERATION_CHECKER_H
 
 #include <rtm/Manager.h>
 #include <rtm/DataFlowComponentBase.h>
@@ -16,14 +16,6 @@
 #include <rtm/DataInPort.h>
 #include <rtm/DataOutPort.h>
 #include <rtm/idl/BasicDataTypeSkel.h>
-#include <rtm/idl/ExtendedDataTypesSkel.h>
-#include <hrpModel/Body.h>
-#include <hrpModel/Link.h>
-#include <hrpModel/JointPath.h>
-#include <hrpUtil/EigenTypes.h>
-
-#include "RemoveForceSensorLinkOffsetService_impl.h"
-#include "../ImpedanceController/RatsMatrix.h"
 
 // Service implementation headers
 // <rtc-template block="service_impl_h">
@@ -40,7 +32,7 @@ using namespace RTC;
 /**
    \brief sample RT component which has one data input port and one data output port
  */
-class RemoveForceSensorLinkOffset
+class AccelerationChecker
   : public RTC::DataFlowComponentBase
 {
  public:
@@ -48,11 +40,11 @@ class RemoveForceSensorLinkOffset
      \brief Constructor
      \param manager pointer to the Manager
   */
-  RemoveForceSensorLinkOffset(RTC::Manager* manager);
+  AccelerationChecker(RTC::Manager* manager);
   /**
      \brief Destructor
   */
-  virtual ~RemoveForceSensorLinkOffset();
+  virtual ~AccelerationChecker();
 
   // The initialize action (on CREATED->ALIVE transition)
   // formaer rtc_init_entry()
@@ -101,38 +93,25 @@ class RemoveForceSensorLinkOffset
   // The action that is invoked when execution context's rate is changed
   // no corresponding operation exists in OpenRTm-aist-0.2.0
   // virtual RTC::ReturnCode_t onRateChanged(RTC::UniqueId ec_id);
-  bool setForceMomentOffsetParam(const std::string& i_name_, const OpenHRP::RemoveForceSensorLinkOffsetService::forcemomentOffsetParam &i_param_);
-  bool getForceMomentOffsetParam(const std::string& i_name_, OpenHRP::RemoveForceSensorLinkOffsetService::forcemomentOffsetParam& i_param_);
-  bool loadForceMomentOffsetParams(const std::string& filename);
-  bool dumpForceMomentOffsetParams(const std::string& filename);
+
 
  protected:
   // Configuration variable declaration
   // <rtc-template block="config_declare">
   
   // </rtc-template>
-  // TimedDoubleSeq m_qRef;
-  TimedDoubleSeq m_qCurrent;
-  TimedOrientation3D m_rpy;
-  
+
+  TimedDoubleSeq m_q;
+
   // DataInPort declaration
   // <rtc-template block="inport_declare">
-  InPort<TimedDoubleSeq> m_qCurrentIn;
-  InPort<TimedOrientation3D> m_rpyIn;
-
+  InPort<TimedDoubleSeq> m_qIn;
   
   // </rtc-template>
 
   // DataOutPort declaration
   // <rtc-template block="outport_declare">
-  std::vector<TimedDoubleSeq> m_force;
-  std::vector<InPort<TimedDoubleSeq> *> m_forceIn;
-  std::vector<OutPort<TimedDoubleSeq> *> m_forceOut;
-  
-  // </rtc-template>
-
-  // DataOutPort declaration
-  // <rtc-template block="outport_declare">
+  OutPort<TimedDoubleSeq> m_qOut;
   
   // </rtc-template>
 
@@ -143,40 +122,25 @@ class RemoveForceSensorLinkOffset
 
   // Service declaration
   // <rtc-template block="service_declare">
-  RTC::CorbaPort m_RemoveForceSensorLinkOffsetServicePort;
   
   // </rtc-template>
 
   // Consumer declaration
   // <rtc-template block="consumer_declare">
-  RemoveForceSensorLinkOffsetService_impl m_service0;
   
   // </rtc-template>
 
  private:
-  struct ForceMomentOffsetParam {
-    hrp::Vector3 force_offset, moment_offset, link_offset_centroid;
-    double link_offset_mass;
-
-    ForceMomentOffsetParam ()
-      : force_offset(hrp::Vector3::Zero()), moment_offset(hrp::Vector3::Zero()),
-        link_offset_centroid(hrp::Vector3::Zero()), link_offset_mass(0)
-    {};
-  };
-  void updateRootLinkPosRot (const hrp::Vector3& rpy);
-  void printForceMomentOffsetParam(const std::string& i_name_);
-
-  std::map<std::string, ForceMomentOffsetParam> m_forcemoment_offset_param;
-  static const double grav = 9.80665; /* [m/s^2] */
+  TimedDoubleSeq m_dq, m_qOld, m_dqOld;
+  double m_thd;
   double m_dt;
-  hrp::BodyPtr m_robot;
-  unsigned int m_debugLevel;
+  int dummy;
 };
 
 
 extern "C"
 {
-  void RemoveForceSensorLinkOffsetInit(RTC::Manager* manager);
+  void AccelerationCheckerInit(RTC::Manager* manager);
 };
 
-#endif // REMOVEFORCESENSORLINKOFFSET_H
+#endif // ACCELERATION_CHECKER_H
