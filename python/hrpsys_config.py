@@ -364,6 +364,11 @@ class HrpsysConfigurator:
                 if self.ic:
                     connectPorts(self.rmfo.port("off_" + sen.name),
                                  self.ic.port(sen.name))
+        elif self.ic: # if the robot does not have rmfo and kf, but have ic
+            for sen in filter(lambda x: x.type == "Force", self.sensors):
+                connectPorts(self.rh.port(sen.name),
+                             self.ic.port(sen.name))
+
         # connection for ic
         if self.ic:
             connectPorts(self.rh.port("q"), self.ic.port("qCurrent"))
@@ -699,6 +704,8 @@ class HrpsysConfigurator:
             self.connectLoggerPort(self.rh, 'emergencySignal',
                                    'emergencySignal')
             self.connectLoggerPort(self.rh, 'servoState')
+            if self.simulation_mode:
+                self.connectLoggerPort(self.rh, 'WAIST')
         for sen in filter(lambda x: x.type == "Force", self.sensors):
             self.connectLoggerPort(self.seq, sen.name + "Ref")
             self.connectLoggerPort(self.sh, sen.name + "Out")
@@ -1671,6 +1678,34 @@ tds.data[4:7], tds.data[8:11]], 'sxyz'))
         @return bool:
         '''
         return self.seq_svc.playPatternOfGroup(gname, jointangles, tm)
+
+    # #
+    # # service interface for Unstable RTC component
+    # #
+    def startAutoBalancer(self, limbs=["rleg", "lleg"]):
+        '''!@brief
+        Start AutoBalancer mode
+        @param limbs list of end-effector name to control. rleg and lleg by default.
+        '''
+        self.abc_svc.startAutoBalancer(limbs)
+
+    def stopAutoBalancer(self):
+        '''!@brief
+        Stop AutoBalancer mode
+        '''
+        self.abc_svc.stopAutoBalancer()
+
+    def startStabilizer(self):
+        '''!@brief
+        Start Stabilzier mode
+        '''
+        self.st_svc.startStabilizer()
+
+    def stopStabilizer(self):
+        '''!@brief
+        Stop Stabilzier mode
+        '''
+        self.st_svc.stopStabilizer()
 
     # ##
     # ## initialize

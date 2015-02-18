@@ -474,7 +474,7 @@ bool SequencePlayer::setTargetPose(const char* gname, const double *xyz, const d
     string base_parent_name = m_robot->joint(indices[0])->parent->name;
     string target_name = m_robot->joint(indices[indices.size()-1])->name;
     // prepare joint path
-    hrp::JointPathExPtr manip = hrp::JointPathExPtr(new hrp::JointPathEx(m_robot, m_robot->link(base_parent_name), m_robot->link(target_name)));
+    hrp::JointPathExPtr manip = hrp::JointPathExPtr(new hrp::JointPathEx(m_robot, m_robot->link(base_parent_name), m_robot->link(target_name), dt));
 
     // calc fk
     for (int i=0; i<m_robot->numJoints(); i++){
@@ -649,6 +649,7 @@ bool SequencePlayer::setInterpolationMode(OpenHRP::SequencePlayerService::interp
 
 bool SequencePlayer::addJointGroup(const char *gname, const OpenHRP::SequencePlayerService::StrSequence& jnames)
 {
+    std::cerr << "[addJointGroup] group name = " << gname << std::endl;
     if ( m_debugLevel > 0 ) {
         std::cerr << __PRETTY_FUNCTION__ << std::endl;
     }
@@ -670,6 +671,7 @@ bool SequencePlayer::addJointGroup(const char *gname, const OpenHRP::SequencePla
 
 bool SequencePlayer::removeJointGroup(const char *gname)
 {
+    std::cerr << "[removeJointGroup] group name = " << gname << std::endl;
     if (!waitInterpolationOfGroup(gname)) return false;
     bool ret;
     {
