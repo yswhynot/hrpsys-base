@@ -1,14 +1,14 @@
 // -*- C++ -*-
 /*!
- * @file  ThermoLimiter.h
- * @brief null component
+ * @file  RotateImage.h
+ * @brief rotate image component
  * @date  $Date$
  *
  * $Id$
  */
 
-#ifndef THERMO_LIMITER_SERVICE_H
-#define THERMO_LIMITER_SERVICE_H
+#ifndef ROTATE_IMAGE_H
+#define ROTATE_IMAGE_H
 
 #include <rtm/Manager.h>
 #include <rtm/DataFlowComponentBase.h>
@@ -16,16 +16,11 @@
 #include <rtm/DataInPort.h>
 #include <rtm/DataOutPort.h>
 #include <rtm/idl/BasicDataTypeSkel.h>
-
-#include <hrpModel/Body.h>
-#include <hrpModel/Link.h>
-#include <hrpModel/JointPath.h>
-
-#include "../ThermoEstimator/MotorHeatParam.h"
+#include <cv.h>
+#include "Img.hh"
 
 // Service implementation headers
 // <rtc-template block="service_impl_h">
-// #include "ThermoLimiterService_impl.h"
 
 // </rtc-template>
 
@@ -37,9 +32,9 @@
 using namespace RTC;
 
 /**
-   \brief sample RT component which has one data input port and one data output port
+   \brief RT component which resize an input image
  */
-class ThermoLimiter
+class RotateImage
   : public RTC::DataFlowComponentBase
 {
  public:
@@ -47,11 +42,11 @@ class ThermoLimiter
      \brief Constructor
      \param manager pointer to the Manager
   */
-  ThermoLimiter(RTC::Manager* manager);
+  RotateImage(RTC::Manager* manager);
   /**
      \brief Destructor
   */
-  virtual ~ThermoLimiter();
+  virtual ~RotateImage();
 
   // The initialize action (on CREATED->ALIVE transition)
   // formaer rtc_init_entry()
@@ -107,18 +102,20 @@ class ThermoLimiter
   // <rtc-template block="config_declare">
   
   // </rtc-template>
-  TimedDoubleSeq m_tempIn;
-  TimedDoubleSeq m_tauMaxOut;
-  
+
+  Img::TimedCameraImage m_original;
+
   // DataInPort declaration
   // <rtc-template block="inport_declare">
-  InPort<TimedDoubleSeq> m_tempInIn;
+  InPort<Img::TimedCameraImage> m_originalIn;
   
   // </rtc-template>
 
+  Img::TimedCameraImage m_rotated;
+
   // DataOutPort declaration
   // <rtc-template block="outport_declare">
-  OutPort<TimedDoubleSeq> m_tauMaxOutOut;
+  OutPort<Img::TimedCameraImage> m_rotatedOut;
   
   // </rtc-template>
 
@@ -129,35 +126,24 @@ class ThermoLimiter
 
   // Service declaration
   // <rtc-template block="service_declare">
-  // RTC::CorbaPort m_ThermoLimiterServicePort;
   
   // </rtc-template>
 
   // Consumer declaration
   // <rtc-template block="consumer_declare">
-  // ThermoLimiterService_impl m_ThermoLimiterService;
   
   // </rtc-template>
 
  private:
-  double m_dt;
-  long long m_loop;
-  unsigned int m_debugLevel, m_debug_print_freq;
-  double m_alarmRatio;
-  hrp::dvector m_motorTemperatureLimit;
-  hrp::BodyPtr m_robot;
-  std::vector<MotorHeatParam> m_motorHeatParams;
-
-  void calcMaxTorqueFromTemperature(hrp::dvector &tauMax);
-  double calcEmergencyRatio(RTC::TimedDoubleSeq &current, hrp::dvector &max, double alarmRatio, std::string &prefix);
-  void callBeep(double ratio, double alarmRatio);
-  bool isDebug(int cycle = 200);
+  double m_angle;
+  IplImage *m_src, *m_dst;
+  int dummy;
 };
 
 
 extern "C"
 {
-  void ThermoLimiterInit(RTC::Manager* manager);
+  void RotateImageInit(RTC::Manager* manager);
 };
 
-#endif // NULL_COMPONENT_H
+#endif // ROTATE_IMAGE_H
