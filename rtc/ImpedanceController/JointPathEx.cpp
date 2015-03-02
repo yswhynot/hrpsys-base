@@ -31,7 +31,7 @@ std::ostream& operator<<(std::ostream& out, hrp::dvector &a) {
     out << std::endl;
 }
 
-//#define DEBUG true
+// #define DEBUG true
 #define DEBUG false
 
 
@@ -146,10 +146,12 @@ bool JointPathEx::calcJacobianInverseNullspace(dmatrix &J, dmatrix &Jinv, dmatri
             if (isnan(r)) r = 0;
         }
 
-        if (( r - avoid_weight_gain[j] ) >= 0 ) {
+        // if (( r - avoid_weight_gain[j] ) >= 0 ) {
+        if ( true ) {
 	  w(j, j) = ( 1.0 / ( 1.0 + r) );
 	} else {
-	  w(j, j) = 1.0;
+          // w(j, j) = ( 1.0 / ( 1.0 + r) );
+          w(j, j) = 1.0;
 	}
         avoid_weight_gain[j] = r;
     }
@@ -278,15 +280,19 @@ bool JointPathEx::calcInverseKinematics2Loop(const Vector3& dp, const Vector3& o
     for(int j=0; j < n; ++j){
       max_speed = std::max(max_speed, fabs(dq(j)));
     }
-    if ( max_speed > 0.2*0.5 ) { // 0.5 safety margin
-      if ( DEBUG ) {
+    //if ( max_speed > 0.2*0.5 ) { // 0.5 safety margin
+    //if ( max_speed > 0.035 ) { // 0.035 = 2deg
+    if ( max_speed > 0.011 ) { // 0.011 = 0.6deg
+      if ( true ) {
         std::cerr << "spdlmt: ";
         for(int j=0; j < n; ++j) { std::cerr << dq(j) << " "; } std::cerr << std::endl;
       }
       for(int j=0; j < n; ++j) {
-        dq(j) = dq(j) * 0.2*0.5 / max_speed;
+          //dq(j) = dq(j) * 0.2*0.5 / max_speed;
+          //dq(j) = dq(j) * 0.035 / max_speed;
+          dq(j) = dq(j) * 0.011 / max_speed;
       }
-      if ( DEBUG ) {
+      if ( true ) {
         std::cerr << "spdlmt: ";
         for(int j=0; j < n; ++j) { std::cerr << dq(j) << " "; } std::cerr << std::endl;
       }
