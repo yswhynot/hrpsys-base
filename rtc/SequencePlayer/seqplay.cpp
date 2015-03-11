@@ -357,6 +357,11 @@ void seqplay::get(double *o_q, double *o_zmp, double *o_accel,
 				delete gi;
 				continue;
 			}
+			if (gi->state == groupInterpolator::restarted){
+				gi->state = groupInterpolator::created;
+				gi->inter->clear();
+				continue;
+			}
 		}
 		++it;
 	}

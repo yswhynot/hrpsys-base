@@ -64,7 +64,7 @@ private:
         }
         void get(double *full, double *dfull = NULL, bool popp=true){
             if (state == created) return;
-            if (state == removing){
+            if (state == removing || state == restarting){
                 double x[indices.size()];
                 double v[indices.size()];
                 for (size_t i=0; i<indices.size(); i++){
@@ -73,7 +73,8 @@ private:
                 }
                 inter->setGoal(x, v, time2remove);
                 time2remove -= inter->deltaT();
-                if (time2remove <= 0) state = removed;
+                if (time2remove <= 0)
+                    state = (state == removing)?removed:restarted;
             }
             double x[indices.size()], v[indices.size()];
             inter->get(x, v, popp);
@@ -97,7 +98,7 @@ private:
                 dst[i] = src[indices[i]];
             }
         }
-        bool isEmpty() { return inter->isEmpty() && state != removing; } 
+        bool isEmpty() { return inter->isEmpty() && state != removing && state != restarting; }
         void go(const double *g, double tm){
             inter->go(g, tm);
             state = working;
@@ -121,17 +122,13 @@ private:
             time2remove = time;
         }
         void clear(double i_timeLimit=0) {
-            tick_t t1 = get_tick();
-            while (!isEmpty()){
-		if (i_timeLimit > 0 
-			&& tick2sec(get_tick()-t1)>=i_timeLimit) break;
-		inter->pop_back();
-            }
+            state = restarting;
+            time2remove = i_timeLimit;
         }
 
         interpolator *inter;
         std::vector<int> indices;
-        typedef enum { created, working, removing, removed } gi_state;
+        typedef enum { created, working, removing, removed, restarting, restarted } gi_state;
         gi_state state;
         double time2remove;
     };
