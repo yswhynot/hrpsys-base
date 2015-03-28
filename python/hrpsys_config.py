@@ -869,6 +869,13 @@ class HrpsysConfigurator:
         for item in self.Groups:
             self.seq_svc.addJointGroup(item[0], item[1])
 
+    def removeSelfGroups(self):
+        '''!@brief
+        Remove the groups statically defined as member variables (Groups) within this class from the hrpsys.SequencePlayer
+        '''
+        for item in self.Groups:
+            self.seq_svc.removeJointGroup(item[0])
+
     # #
     # # service interface for RTC component
     # #

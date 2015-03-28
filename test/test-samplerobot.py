@@ -24,6 +24,8 @@ import OpenHRP
 rtm.nsport = 2809
 
 class SampleRobot(HrpsysConfigurator):
+    Groups = [['rarm', ['RARM_SHOULDER_P', 'RARM_SHOULDER_R', 'RARM_SHOULDER_Y', 'RARM_ELBOW', 'RARM_WRIST_Y', 'RARM_WRIST_P']],
+              ['larm', ['LARM_SHOULDER_P', 'LARM_SHOULDER_R', 'LARM_SHOULDER_Y', 'LARM_ELBOW', 'LARM_WRIST_Y', 'LARM_WRIST_P']]]
     def getRTCList(self):
         return [
             ['seq', "SequencePlayer"],
@@ -76,6 +78,41 @@ class TestJointAngle(unittest.TestCase):
         a = [0 for i in xrange(len(h.getJointAngles()))]
         self.assertTrue(h.setJointAngles(a,2))
         self.assertEqual(h.waitInterpolation(), None)
+
+    def test_joint_groups(self):
+        h = SampleRobot()
+        h.findComps()
+
+        av = [0.0]*len(h.getJointAngles())
+        self.assertTrue(h.setJointAngles(av, 1))
+        self.assertEqual(h.waitInterpolation(), None)
+
+        gr = self.Groups[0]
+        gname = gr[0]
+        jlist = gr[1]
+        import random
+        gav = [(360*random.random()-180) for i in xrange(len(jlist))]
+
+        self.assertTrue(h.setJointAnglesOfGroup(gname, gav, 1, False))
+        self.assertEqual(h.waitInterpolationOfGroup(gname), None)
+
+        self.assertTrue(h.seq_svc.removeJointGroup(gname))
+        self.assertEqual(h.waitInterpolationOfGroup(gname), None)
+
+        ## sync joint group
+        h.removeSelfGroups()
+        h.waitInterpolation()
+        h.setJointAngles(av, 1)
+        h.waitInterpolation()
+        h.setSelfGroups()
+
+        h.setJointAnglesOfGroup(gname, gav, 5, False)
+        time.sleep(1)
+        h.clearOfGroup(gname)
+        av1 = h.getJointAngles()
+        h.setJointAngles(av, 1)
+        h.waitInterpolation()
+        av2 = h.getJointAngles()
 
 #unittest.main()
 if __name__ == '__main__':
