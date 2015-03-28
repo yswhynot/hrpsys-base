@@ -380,6 +380,7 @@ bool SequencePlayer::setJointAngles(const double *angles, double tm)
     }
     Guard guard(m_mutex);
     if (!setInitialState()) return false;
+    if (!m_seq->resetJointGroup(NULL, m_qInit.data.get_buffer())) return false;
     for (int i=0; i<m_robot->numJoints(); i++){
         hrp::Link *j = m_robot->joint(i);
         if (j) j->q = angles[i];

@@ -455,6 +455,17 @@ bool seqplay::removeJointGroup(const char *gname, double time)
 
 bool seqplay::resetJointGroup(const char *gname, const double *full)
 {
+	if(!gname) { // for fullbody sequencer
+		std::map<std::string, groupInterpolator *>::iterator it;
+		for (it=groupInterpolators.begin(); it!=groupInterpolators.end(); it++){
+			groupInterpolator *gi = it->second;
+			if (gi && (gi->state == groupInterpolator::created || gi->state == groupInterpolator::working) && gi->inter->isEmpty()) {
+				gi->set(full);
+			}
+		}
+		return true;
+	}
+
 	char *s = (char *)gname; while(*s) {*s=toupper(*s);s++;}
 	groupInterpolator *i = groupInterpolators[gname];
 	if (i){
