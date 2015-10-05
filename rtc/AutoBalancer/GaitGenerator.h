@@ -541,8 +541,8 @@ namespace rats
             path.push_back(hrp::Vector3(start+-1*way_point_offset(0)*diff_vec.normalized()+hrp::Vector3(0,-way_point_offset(1),way_point_offset(2)+max_height-start(2))));
             path.push_back(hrp::Vector3(goal+way_point_offset(0)*diff_vec.normalized()+hrp::Vector3(0,-way_point_offset(1),way_point_offset(2)+max_height-goal(2))));
         }
-        if (height > 30 * 1e-3) {
-          path.push_back(hrp::Vector3(goal(0), goal(1), 30*1e-3+goal(2)));
+        if (height > 50 * 1e-3) {
+          path.push_back(hrp::Vector3(goal(0), goal(1), 50*1e-3+goal(2)));
         }
         path.push_back(goal);
         return interpolate_antecedent_path_base(tmp_ratio, path);
