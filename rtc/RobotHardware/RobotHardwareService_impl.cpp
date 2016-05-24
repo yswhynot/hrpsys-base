@@ -121,9 +121,10 @@ void RobotHardwareService_impl::initializeJointAngle(const char* name, const cha
     m_robot->initializeJointAngle(name, option);
 }
 
-void RobotHardwareService_impl::setServoGainPercentage(const char *jname, double percentage)
+//void RobotHardwareService_impl::setServoGainPercentage(const char *jname, double percentage)
+void RobotHardwareService_impl::setServoGainPercentage(const char *jname, double pg, double dg, double tm)
 {
-    m_robot->setServoGainPercentage(jname, percentage);
+    m_robot->setServoGainPercentage(jname, pg, dg, tm);
 }
 
 void RobotHardwareService_impl::setServoErrorLimit(const char *jname, double limit)

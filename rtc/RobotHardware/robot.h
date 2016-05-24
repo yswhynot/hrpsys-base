@@ -260,7 +260,8 @@ public:
        \param percentage to joint servo gain[0-100]
        \return true if set successfully, false otherwise 
      */
-    bool setServoGainPercentage(const char *i_jname, double i_percentage);
+    //bool setServoGainPercentage(const char *i_jname, double i_percentage);
+    bool setServoGainPercentage(const char *i_jname, double i_pg_percentage, double i_dg_percentage, double i_time);
 
     /**
        \brief set servo error limit value for specific joint or joint group
@@ -320,6 +321,7 @@ private:
 
     int inertia_calib_counter, force_calib_counter;
     std::vector<double> gain_counter;
+    std::vector<double> max_gain_counter;
 
     std::vector< boost::array<double,3> > gyro_sum;
     std::vector< boost::array<double,3> > accel_sum;

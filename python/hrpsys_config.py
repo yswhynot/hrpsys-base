@@ -313,6 +313,9 @@ class HrpsysConfigurator:
             else:
                 connectPorts(self.sh.port("qOut"), self.rh.port("qRef"))
 
+        # connection for reference torque angles
+        connectPorts(self.sh.port("tqOut"), self.rh.port("tauRef"))
+
         # only for kinematics simulator
         if rtm.findPort(self.rh.ref, "basePoseRef"):
             self.kinematics_only_mode = True
@@ -1869,6 +1872,11 @@ dr=0, dp=0, dw=0, tm=10, wait=True):
         remove force sensor offset
         '''
         self.rh_svc.removeForceSensorOffset()
+
+    def setServoGainPercentage(self, pgain, dgain=100.0, jname='all', time=2.5):
+        '''!@brief
+        '''
+        self.rh_svc.setServoGainPercentage(jname, pgain, dgain, time)
 
     def playPattern(self, jointangles, rpy, zmp, tm):
         '''!@brief

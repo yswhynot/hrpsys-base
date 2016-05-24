@@ -29,7 +29,7 @@ public:
     void getStatus2(OpenHRP::RobotHardwareService::RobotState2_out rs);
     CORBA::Boolean power(const char* jname, OpenHRP::RobotHardwareService::SwitchStatus ss);
     CORBA::Boolean servo(const char* jname, OpenHRP::RobotHardwareService::SwitchStatus ss);
-    void setServoGainPercentage(const char *jname, double limit);
+    void setServoGainPercentage(const char *jname, double pg, double dg, double tm);
     void setServoErrorLimit(const char *jname, double limit);
     void calibrateInertiaSensor();
     void removeForceSensorOffset();

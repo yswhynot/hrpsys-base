@@ -660,7 +660,7 @@ CORBA::Boolean RobotHardwareServicePort::power(const char* jname, OpenHRP::Robot
 CORBA::Boolean RobotHardwareServicePort::servo(const char* jname, OpenHRP::RobotHardwareService::SwitchStatus turnon) {
     m_robot->servo(jname, turnon == OpenHRP::RobotHardwareService::SWITCH_ON);
 }
-void RobotHardwareServicePort::setServoGainPercentage(const char *jname, double limit) {
+void RobotHardwareServicePort::setServoGainPercentage(const char *jname, double pg, double dg, double tm) {
 }
 void RobotHardwareServicePort::setServoErrorLimit(const char *jname, double limit) {
     m_robot->setServoErrorLimit(jname, limit);
