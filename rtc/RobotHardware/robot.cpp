@@ -652,6 +652,7 @@ bool robot::setServoGainPercentage(const char *i_jname, double i_pg_percentage, 
             gain_counter[i] = 0;
             max_gain_counter[i] = count;
         }
+        std::cerr << "A count: " << count << std::endl;
         std::cerr << "[RobotHardware] setServoGainPercentage " << i_pg_percentage << "[%]";
         std::cerr << " / " << i_dg_percentage << "[%] for all joints" ;
         std::cerr << " ,in " << count * m_dt << "[sec]" << std::endl;
@@ -662,6 +663,11 @@ bool robot::setServoGainPercentage(const char *i_jname, double i_pg_percentage, 
         dgain[l->jointId] = default_dgain[l->jointId] * i_dg_percentage/100.0;
         gain_counter[l->jointId] = 0;
         max_gain_counter[l->jointId] = count;
+        std::cerr << "B count: " << count << std::endl;
+        std::cerr << "def_p: " << default_pgain[l->jointId];
+        std::cerr << " / def_d: " << default_dgain[l->jointId];
+        std::cerr << " / old_p: " << old_pgain[l->jointId];
+        std::cerr << " / old_d: " << old_dgain[l->jointId] << std::endl;
         std::cerr << "[RobotHardware] setServoGainPercentage " << i_pg_percentage << "[%]";
         std::cerr << " / " << i_dg_percentage << "[%] for " << i_jname;
         std::cerr << " ,in " << count * m_dt << "[sec]" << std::endl;
@@ -677,6 +683,7 @@ bool robot::setServoGainPercentage(const char *i_jname, double i_pg_percentage, 
             gain_counter[jgroup[i]] = 0;
             max_gain_counter[jgroup[i]] = count;
         }
+        std::cerr << "C count: " << count << std::endl;
         std::cerr << "[RobotHardware] setServoGainPercentage " << i_pg_percentage << "[%]";
         std::cerr << " / " << i_dg_percentage << "[%] for " << i_jname;
         std::cerr << " ,in " << count * m_dt << "[sec]" << std::endl;
