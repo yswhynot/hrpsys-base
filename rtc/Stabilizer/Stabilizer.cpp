@@ -563,10 +563,12 @@ RTC::ReturnCode_t Stabilizer::onExecute(RTC::UniqueId ec_id)
       if ( transition_count == 0 && !on_ground ) control_mode = MODE_SYNC_TO_AIR;
       break;
     case MODE_SYNC_TO_IDLE:
+        std::cerr << "[" << m_qRef.tm.sec + (m_qRef.tm.nsec * 0.000000001) << "] " << "IDLE" << std::endl;
       sync_2_idle();
       control_mode = MODE_IDLE;
       break;
     case MODE_SYNC_TO_AIR:
+        std::cerr << "[" << m_qRef.tm.sec + (m_qRef.tm.nsec * 0.000000001) << "] " << "AIR" << std::endl;
       sync_2_idle();
       control_mode = MODE_AIR;
       break;

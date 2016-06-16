@@ -48,7 +48,7 @@ GazeController::GazeController(RTC::Manager* manager)
       m_basePosIn("basePosIn", m_basePos),
       m_baseRpyIn("baseRpyIn", m_baseRpy),
       m_rpyIn("rpy", m_rpy),
-      m_qOut("q", m_q),
+      m_qOut("q", m_qRef),
       m_GazeControllerServicePort("GazeControllerService"),
       // </rtc-template>
       m_robot(hrp::BodyPtr()),
@@ -173,8 +173,19 @@ RTC::ReturnCode_t GazeController::onInitialize()
 
     unsigned int dof = m_robot->numJoints();
     // allocate memory for outPorts
-    m_q.data.length(dof);
+    //m_q.data.length(dof);
     loop = 0;
+
+    hv_org.resize(2);
+    controllers.resize(2);
+    TwoDofController::TwoDofControllerParam p;
+    p.ke = 1;
+    p.tc = 0.02;
+    p.dt = 0.002;
+    controllers[0].setup(p);
+    controllers[0].reset();
+    controllers[1].setup(p);
+    controllers[1].reset();
 
     std::cerr << "[" << m_profile.instance_name << "] onInitialize()" << std::endl;
     return RTC::RTC_OK;
@@ -227,28 +238,30 @@ RTC::ReturnCode_t GazeController::onExecute(RTC::UniqueId ec_id)
 {
     std::cout << "GazeController::onExecute(" << ec_id << ")" << std::endl;
     loop ++;
+    bool _publish = false;
     // check dataport input
     if (m_basePosIn.isNew()) {
-      m_basePosIn.read();
+        m_basePosIn.read();
     }
-    std::cout << "GazeController::onExecute(" << ec_id << ") a" << std::endl;
+    //std::cout << "GazeController::onExecute(" << ec_id << ") a" << std::endl;
     if (m_baseRpyIn.isNew()) {
-      m_baseRpyIn.read();
+        m_baseRpyIn.read();
     }
-    std::cout << "GazeController::onExecute(" << ec_id << ") b" << std::endl;
+    //std::cout << "GazeController::onExecute(" << ec_id << ") b" << std::endl;
     if (m_rpyIn.isNew()) {
-      m_rpyIn.read();
+        m_rpyIn.read();
     }
-    std::cout << "GazeController::onExecute(" << ec_id << ") c" << std::endl;
+    //std::cout << "GazeController::onExecute(" << ec_id << ") c" << std::endl;
     if (m_qCurrentIn.isNew()) {
-      m_qCurrentIn.read();
+        m_qCurrentIn.read();
     }
-    std::cout << "GazeController::onExecute(" << ec_id << ") d" << std::endl;
+    //std::cout << "GazeController::onExecute(" << ec_id << ") d" << std::endl;
     if (m_qRefIn.isNew()) {
         m_qRefIn.read();
-        m_q.tm = m_qRef.tm;
+        _publish = true;
     }
-    std::cout << "GazeController::onExecute(" << ec_id << ") e" << std::endl;
+
+    //std::cout << "GazeController::onExecute(" << ec_id << ") e" << std::endl;
     if ( m_qRef.data.length() ==  m_robot->numJoints() &&
          m_qCurrent.data.length() ==  m_robot->numJoints() ) {
 
@@ -259,47 +272,56 @@ RTC::ReturnCode_t GazeController::onExecute(RTC::UniqueId ec_id)
             }
             std::cerr << std::endl;
         }
-
-        std::cout << "GazeController::onExecute(" << ec_id << ") f" << std::endl;
+#define PRINT_VEC3(name, arg) std::cerr << name << arg(0) << " " << arg(1) << " "  << arg(2)  << std::endl
+        //std::cout << "GazeController::onExecute(" << ec_id << ") f" << std::endl;
         Guard guard(m_mutex);
 
         hrp::dvector q_org(m_robot->numJoints());
+        std::vector<int> head_ids;
+        // debug
+        head_ids.resize(2);
+        head_ids[0] = 15;
+        head_ids[1] = 16;
         // reference model
         for ( int i = 0; i < m_robot->numJoints(); i++ ){
             q_org[i] = m_robot->joint(i)->q;
             m_robot->joint(i)->q = m_qRef.data[i];
         }
+        for (int i = 0; i < head_ids.size(); i++) {
+            m_robot->joint(head_ids[i])->q = hv_org[i];
+        }
+        PRINT_VEC3("root : ", m_robot->rootLink()->p);
         m_robot->rootLink()->p = hrp::Vector3(m_basePos.data.x, m_basePos.data.y, m_basePos.data.z);
         m_robot->rootLink()->R = hrp::rotFromRpy(m_baseRpy.data.r, m_baseRpy.data.p, m_baseRpy.data.y);
         m_robot->calcForwardKinematics();
-        std::cout << "GazeController::onExecute(" << ec_id << ") f1" << std::endl;
-        std::vector<int> head_ids;
-        // debug
-        head_ids.resize(2);
-        head_ids[0] = 0;
-        head_ids[1] = 1;
+        //std::cout << "GazeController::onExecute(" << ec_id << ") f1" << std::endl;
+
         //
         std::vector<double> head_vec(head_ids.size());
         for (int i = 0; i < head_ids.size(); i++) {
-            head_vec[i] = m_qRef.data[head_ids[i]];
+            head_vec[i] = m_robot->joint(head_ids[i])->q;
         }
-        std::cout << "GazeController::onExecute(" << ec_id << ") f2" << std::endl;
+        //std::cout << "GazeController::onExecute(" << ec_id << ") f2" << std::endl;
         hrp::Vector3 targetWorld;
         // debug
-        targetWorld(0) = 2.0;
+        targetWorld(0) = 4.0;
         targetWorld(1) = 0.0;
         targetWorld(2) = 0.0;
         //
+
         hrp::Vector3 tgt_org;
         {
-            hrp::Matrix33 camR = tcam.localR * tcam.link->R;
-            hrp::Vector3  camp = tcam.localR * tcam.link->p + tcam.localPos;
-            std::cout << "GazeController::onExecute(" << ec_id << ") f3" << std::endl;
-            tgt_org = camR.transpose() * (camp + targetWorld);
+            hrp::Matrix33 camR = tcam.link->R * tcam.localR;
+            hrp::Vector3  camp = tcam.link->R * tcam.localPos + tcam.link->p;
+            PRINT_VEC3("tcam_local: ", tcam.localPos);
+            PRINT_VEC3("tcam_linkp: ", tcam.link->p);
+            PRINT_VEC3("camp: ", camp);
+            //std::cout << "GazeController::onExecute(" << ec_id << ") f3" << std::endl;
+            tgt_org = camR.transpose() * (targetWorld - camp);
             //
-            std::cerr << "tgt: " << tgt_org(0) << " " << tgt_org(1) << " "  << tgt_org(2)  << std::endl;
+            PRINT_VEC3("tgt: ", tgt_org);
         }
-        std::cout << "GazeController::onExecute(" << ec_id << ") g" << std::endl;
+        //std::cout << "GazeController::onExecute(" << ec_id << ") g" << std::endl;
         // generate Jacobian
         hrp::dmatrix J(2, head_ids.size());
         for (int i = 0; i < head_ids.size(); i++) {
@@ -312,10 +334,10 @@ RTC::ReturnCode_t GazeController::onExecute(RTC::UniqueId ec_id)
                 }
             }
             m_robot->calcForwardKinematics();
-            hrp::Matrix33 camR = tcam.localR * tcam.link->R;
-            hrp::Vector3  camp = tcam.localR * tcam.link->p + tcam.localPos;
+            hrp::Matrix33 camR = tcam.link->R * tcam.localR;
+            hrp::Vector3  camp = tcam.link->R * tcam.localPos + tcam.link->p;
 
-            hrp::Vector3 diff = (camR.transpose() * (camp + targetWorld)) - tgt_org;
+            hrp::Vector3 diff = (camR.transpose() * (targetWorld - camp)) - tgt_org;
             J(0, i) = diff(0);
             J(1, i) = diff(1);
         }
@@ -326,22 +348,36 @@ RTC::ReturnCode_t GazeController::onExecute(RTC::UniqueId ec_id)
         hrp::dmatrix Jt(head_ids.size(), 2);
         int ret = hrp::calcPseudoInverse(J, Jt);
         std::cerr << "Jt" << std::endl;
-        std::cerr << "   " << J(0 ,0) << " " << J(0, 1) << std::endl;
-        std::cerr << "   " << J(1 ,0) << " " << J(1, 1) << std::endl;
+        std::cerr << "   " << Jt(0 ,0) << " " << Jt(0, 1) << std::endl;
+        std::cerr << "   " << Jt(1 ,0) << " " << Jt(1, 1) << std::endl;
         hrp::dvector ret_q(head_ids.size());
         hrp::dvector tgt(2);
         tgt(0) = - tgt_org[0];
         tgt(1) = - tgt_org[1];
         ret_q = Jt * tgt;
+        //hv_org[0] = hv_org[0] + ret_q(0);
+        //hv_org[1] = hv_org[1] + ret_q(1);
+        hv_org[0] = controllers[0].update(hv_org[0], hv_org[0] + ret_q(0));
+        hv_org[1] = controllers[1].update(hv_org[1], hv_org[1] + ret_q(1));
         std::cerr << "retq: " << ret_q(0) << " " << ret_q(1) << std::endl;
+        std::cerr << "hv_org: " << hv_org[0] << " " << hv_org[1] << std::endl;
         std::cerr << std::endl;
-        std::cout << "GazeController::onExecute(" << ec_id << ") h" << std::endl;
+
+        //speed limit
+
+        for (int i = 0; i < head_ids.size(); i++) {
+            m_qRef.data[head_ids[i]] = hv_org[i];
+        }
+        //std::cout << "GazeController::onExecute(" << ec_id << ") h" << std::endl;
     } else {
         if ( DEBUGP || loop % 100 == 0 ) {
             std::cerr << "GazeController is not working..." << std::endl;
             std::cerr << "         m_qRef " << m_qRef.data.length() << std::endl;
             std::cerr << "     m_qCurrent " << m_qCurrent.data.length() << std::endl;
         }
+    }
+    if(_publish) {
+        m_qOut.write();
     }
     return RTC::RTC_OK;
 }

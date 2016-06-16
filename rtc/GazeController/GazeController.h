@@ -21,7 +21,7 @@
 // Service implementation headers
 // <rtc-template block="service_impl_h">
 #include "GazeControllerService_impl.h"
-
+#include "../Stabilizer/TwoDofController.h"
 // </rtc-template>
 
 // Service Consumer stub headers
@@ -161,13 +161,14 @@ class GazeController
   double m_dt;
   hrp::BodyPtr m_robot;
   coil::Mutex m_mutex;
-  hrp::dvector qrefv;
+
   unsigned int m_debugLevel;
   int dummy;
   int loop;
   bool use_sh_base_pos_rpy;
-
+  std::vector<double > hv_org;
   struct camera_trans tcam;
+  std::vector<class TwoDofController> controllers;
 };
 
 
