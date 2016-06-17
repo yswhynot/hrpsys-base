@@ -392,7 +392,7 @@ RTC::ReturnCode_t GazeController::onExecute(RTC::UniqueId ec_id)
 void GazeController::gazeControll (void) {
 
 }
-void GazeController::transision (void) {
+void GazeController::transition (void) {
 
 }
 /*

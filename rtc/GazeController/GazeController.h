@@ -149,7 +149,7 @@ class GazeController
   };
 
   void gazeControll (void);
-  void transision (void);
+  void transition (void);
 
 #if 0
   void copyGazeParam (OpenHRP::GazeControllerService::gazeParam& i_param_, const GazeParam& param);
@@ -170,7 +170,7 @@ class GazeController
   std::vector<double > hv_org;
   struct camera_trans tcam;
   std::vector<class TwoDofController> controllers;
-  int transision_count;
+  int transition_count;
 };
 
 
