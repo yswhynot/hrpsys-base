@@ -25,7 +25,7 @@ module OpenHRP
      * @enum CoordsBase
      * @brief coorinates base
      */
-    enum CoordsBase {
+    enum BaseType {
       MODE_BODY_LOCAL,
       MODE_WORLD,
       MODE_LINK_LOCAL,
@@ -42,7 +42,7 @@ module OpenHRP
       /// Controller mode.
       ControllerMode controller_mode;
       /// Coordinate Base
-      CoordsBase coordsbase;
+      BaseType base_frame;
       ///
       string linkname;
       /// Use StateHolder basePos and baseRpy?
