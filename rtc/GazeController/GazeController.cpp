@@ -272,6 +272,13 @@ RTC::ReturnCode_t GazeController::onExecute(RTC::UniqueId ec_id)
             }
             std::cerr << std::endl;
         }
+
+        if (transition_count == 0) {
+            gazeControll();
+        } else {
+            transition();
+        }
+
 #define PRINT_VEC3(name, arg) std::cerr << name << arg(0) << " " << arg(1) << " "  << arg(2)  << std::endl
         //std::cout << "GazeController::onExecute(" << ec_id << ") f" << std::endl;
         Guard guard(m_mutex);
@@ -382,6 +389,12 @@ RTC::ReturnCode_t GazeController::onExecute(RTC::UniqueId ec_id)
     return RTC::RTC_OK;
 }
 
+void GazeController::gazeControll (void) {
+
+}
+void GazeController::transision (void) {
+
+}
 /*
   RTC::ReturnCode_t GazeController::onAborting(RTC::UniqueId ec_id)
   {

@@ -15,8 +15,10 @@ module OpenHRP
      */
     enum ControllerMode {
       MODE_IDLE,
+      MODE_TRANSITION,
       MODE_GAZE,
-      MODE_TRAKING
+      MODE_TRACKING,
+      MODE_STABILIZE
     };
 
     /**
@@ -26,6 +28,7 @@ module OpenHRP
     enum CoordsBase {
       MODE_BODY_LOCAL,
       MODE_WORLD,
+      MODE_LINK_LOCAL,
       MODE_CAMERA_LOCAL
     };
 
@@ -39,7 +42,9 @@ module OpenHRP
       /// Controller mode.
       ControllerMode controller_mode;
       /// Coordinate Base
-      CoordsBase base;
+      CoordsBase coordsbase;
+      ///
+      string linkname;
       /// Use StateHolder basePos and baseRpy?
       boolean use_sh_base_pos_rpy;
     };

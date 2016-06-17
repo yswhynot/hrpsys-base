@@ -85,19 +85,15 @@ class GazeController
   // The action that is invoked when execution context's rate is changed
   // no corresponding operation exists in OpenRTm-aist-0.2.0
   // virtual RTC::ReturnCode_t onRateChanged(RTC::UniqueId ec_id);
+
 #if 0
-  bool startGazeController(const std::string& i_name_);
-  bool startGazeControllerNoWait(const std::string& i_name_);
-  bool stopGazeController(const std::string& i_name_);
-  bool stopGazeControllerNoWait(const std::string& i_name_);
+  bool startGazeController();
+  bool startGazeControllerNoWait();
+  bool stopGazeController();
+  bool stopGazeControllerNoWait();
   bool setGazeControllerParam(const std::string& i_name_, OpenHRP::GazeControllerService::gazeParam i_param_);
   bool getGazeControllerParam(const std::string& i_name_, OpenHRP::GazeControllerService::gazeParam& i_param_);
   void waitGazeControllerTransition(std::string i_name_);
-  void startObjectTurnaroundDetection(const double i_ref_diff_wrench, const double i_max_time, const OpenHRP::GazeControllerService::StrSequence& i_ee_names);
-  OpenHRP::GazeControllerService::DetectorMode checkObjectTurnaroundDetection();
-  bool setObjectTurnaroundDetectorParam(const OpenHRP::GazeControllerService::objectTurnaroundDetectorParam &i_param_);
-  bool getObjectTurnaroundDetectorParam(OpenHRP::GazeControllerService::objectTurnaroundDetectorParam& i_param_);
-  bool getObjectForcesMoments(OpenHRP::GazeControllerService::Dbl3Sequence_out o_forces, OpenHRP::GazeControllerService::Dbl3Sequence_out o_moments, OpenHRP::GazeControllerService::DblSequence3_out o_3dofwrench);
 #endif
  protected:
   // Configuration variable declaration
@@ -151,6 +147,10 @@ class GazeController
     hrp::Matrix33 localR;
     hrp::Link     *link;
   };
+
+  void gazeControll (void);
+  void transision (void);
+
 #if 0
   void copyGazeParam (OpenHRP::GazeControllerService::gazeParam& i_param_, const GazeParam& param);
   void updateRootLinkPosRot (TimedOrientation3D tmprpy);
@@ -166,9 +166,11 @@ class GazeController
   int dummy;
   int loop;
   bool use_sh_base_pos_rpy;
+
   std::vector<double > hv_org;
   struct camera_trans tcam;
   std::vector<class TwoDofController> controllers;
+  int transision_count;
 };
 
 
