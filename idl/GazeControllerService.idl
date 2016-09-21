@@ -1,0 +1,99 @@
+/**
+ * @file GazeControllerService.idl
+ * @brief Services for the gaze controller interface
+ */
+module OpenHRP
+{
+
+  interface GazeControllerService
+  {
+    typedef sequence<double, 3> DblSequence3;
+
+    /**
+     * @enum ControllerMode
+     * @brief Mode of controller
+     */
+    enum ControllerMode {
+      MODE_IDLE,
+      MODE_TRANSITION,
+      MODE_GAZE,
+      MODE_TRACKING,
+      MODE_STABILIZE
+    };
+
+    /**
+     * @enum CoordsBase
+     * @brief coorinates base
+     */
+    enum BaseType {
+      BAD_BASE_TYPE,
+      ROOT_POS,
+      WORLD_POS,
+      LINK_POS,
+      ROOT_ROT,
+      WORLD_ROT,
+      LINK_ROT,
+      CURRENT_CAMERA_ROT
+    };
+
+    /**
+     * @struct gazeParam
+     * @brief Gaze controller parameters for one end-effector.
+     */
+    struct gazeParam {
+      ///
+      DblSequence3 target;
+      /// Controller mode.
+      ControllerMode controller_mode;
+      /// Coordinate Base
+      BaseType base_type;
+      ///
+      string linkname;
+      /// Use StateHolder basePos and baseRpy?
+      boolean use_sh_base_pos_rpy;
+    };
+
+    /**
+     * @brief start gaze controller with waiting for transition.
+     * @return true if set successfully, false otherwise
+     */
+    boolean startGazeController();
+
+    /**
+     * @brief start gaze controller without waiting for transition.
+     * @return true if set successfully, false otherwise
+     */
+    boolean startGazeControllerNoWait();
+
+    /**
+     * @brief stop gaze controller with waiting for transition.
+     * @return true if set successfully, false otherwise
+     */
+    boolean stopGazeController();
+
+    /**
+     * @brief stop gaze controller without waiting for transition.
+     * @return true if set successfully, false otherwise
+     */
+    boolean stopGazeControllerNoWait();
+
+    /**
+     * @brief set gaze parameters.
+     * @param i_param input new gaze parameters
+     * @return true if set successfully, false otherwise
+     */
+    boolean setGazeControllerParam(in gazeParam i_param);
+
+    /**
+     * @brief get gaze parameters.
+     * @param i_param ouput gaze parameters
+     * @return true if set successfully, false otherwise
+     */
+    boolean getGazeControllerParam(out gazeParam i_param);
+
+    /**
+     * @brief wait for gaze controller mode transition.
+     */
+    void waitGazeControllerTransition();
+  };
+};
