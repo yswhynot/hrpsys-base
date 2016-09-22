@@ -185,28 +185,36 @@ RTC::ReturnCode_t GazeController::onInitialize()
             }
         }
     }
-
+    //
     if (gaze_joints.size() < 1) {
         std::cerr << "[" << m_profile.instance_name << "] There is not enough joints (" << gaze_joints.size() << ")." << std::endl;
         return RTC::RTC_ERROR;
     }
-    // allocate memory for outPorts
-    //m_q.data.length(dof);
-    loop_ = 0;
-
     gaze_angles.resize(gaze_joints.size());
-    controllers.resize(gaze_joints.size());
+
     TwoDofController::TwoDofControllerParam p;
-    // values should be set by param
     p.ke = 1;
     p.tc = 0.02;
-    p.dt = 0.002;
+    p.dt = m_dt;
 
+    coil::vstring parameters_str = coil::split(prop["gaze_parameters"], ",");
+    if (parameters_str.size() == 2) {
+        double ke, tc;
+        coil::stringTo(ke, parameters_str[0].c_str());
+        coil::stringTo(tc, parameters_str[1].c_str());
+        p.ke = ke;
+        p.tc = tc;
+    }
+    controllers.resize(gaze_joints.size());
     for(int i = 0; i < gaze_joints.size(); i++) {
         controllers[i].setup(p);
         controllers[i].reset();
     }
 
+    std::cerr << "[" << m_profile.instance_name << "] use TwoDofControllerParam";
+    std::cerr << ", ke = " << p.ke << ", tc = " << p.tc << std::endl;
+
+    loop_ = 0;
     initialized_ = true;
     std::cerr << "[" << m_profile.instance_name << "] onInitialize()" << std::endl;
     return RTC::RTC_OK;

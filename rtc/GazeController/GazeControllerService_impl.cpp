@@ -39,12 +39,12 @@ GazeControllerService_impl::~GazeControllerService_impl()
     // wait
 }
 
-::CORBA::Boolean GazeControllerService_impl::stopGazeController()
+::CORBA::Boolean GazeControllerService_impl::stopGazeController(CORBA::Double tm)
 {
     m_gaze->stopGazeController();
 }
 
-::CORBA::Boolean GazeControllerService_impl::stopGazeControllerNoWait()
+::CORBA::Boolean GazeControllerService_impl::stopGazeControllerNoWait(CORBA::Double tm)
 {
     m_gaze->stopGazeController();
     // wait

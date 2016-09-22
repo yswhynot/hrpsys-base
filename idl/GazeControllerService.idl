@@ -69,13 +69,13 @@ module OpenHRP
      * @brief stop gaze controller with waiting for transition.
      * @return true if set successfully, false otherwise
      */
-    boolean stopGazeController();
+    boolean stopGazeController(in double tm);
 
     /**
      * @brief stop gaze controller without waiting for transition.
      * @return true if set successfully, false otherwise
      */
-    boolean stopGazeControllerNoWait();
+    boolean stopGazeControllerNoWait(in double tm);
 
     /**
      * @brief set gaze parameters.
