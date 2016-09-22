@@ -32,12 +32,10 @@ class GazeControllerService_impl
 
    // attributes and operations
    ::CORBA::Boolean startGazeController();
-   ::CORBA::Boolean startGazeControllerNoWait();
-   ::CORBA::Boolean stopGazeController(CORBA::Double tm);
-   ::CORBA::Boolean stopGazeControllerNoWait(CORBA::Double tm);
+   ::CORBA::Boolean stopGazeController(CORBA::Double tm, CORBA::Boolean wait);
    ::CORBA::Boolean setGazeControllerParam(const OpenHRP::GazeControllerService::gazeParam& i_param);
    ::CORBA::Boolean getGazeControllerParam(OpenHRP::GazeControllerService::gazeParam_out i_param);
-   void waitGazeControllerTransition();
+   ::CORBA::Boolean waitGazeControllerTransition();
 
   //
   void gaze(GazeController *i_gaze);

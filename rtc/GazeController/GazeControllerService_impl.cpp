@@ -31,38 +31,32 @@ GazeControllerService_impl::~GazeControllerService_impl()
 ::CORBA::Boolean GazeControllerService_impl::startGazeController()
 {
     m_gaze->startGazeController();
+    return true;
 }
 
-::CORBA::Boolean GazeControllerService_impl::startGazeControllerNoWait()
+::CORBA::Boolean GazeControllerService_impl::stopGazeController(CORBA::Double tm, CORBA::Boolean wait)
 {
-    m_gaze->startGazeController();
-    // wait
-}
-
-::CORBA::Boolean GazeControllerService_impl::stopGazeController(CORBA::Double tm)
-{
-    m_gaze->stopGazeController();
-}
-
-::CORBA::Boolean GazeControllerService_impl::stopGazeControllerNoWait(CORBA::Double tm)
-{
-    m_gaze->stopGazeController();
-    // wait
+    m_gaze->stopGazeController(tm);
+    if (wait) {
+        return m_gaze->waitGazeControllerTransition();
+    }
+    return true;
 }
 
 ::CORBA::Boolean GazeControllerService_impl::setGazeControllerParam(const OpenHRP::GazeControllerService::gazeParam& i_param)
 {
-
+    return m_gaze->setGazeControllerParam(i_param);
 }
 
 ::CORBA::Boolean GazeControllerService_impl::getGazeControllerParam(OpenHRP::GazeControllerService::gazeParam_out i_param)
 {
-
+    i_param = new OpenHRP::GazeControllerService::gazeParam();
+    return m_gaze->getGazeControllerParam(*i_param);
 }
 
-void GazeControllerService_impl::waitGazeControllerTransition()
+::CORBA::Boolean GazeControllerService_impl::waitGazeControllerTransition()
 {
-
+    return m_gaze->waitGazeControllerTransition();
 }
 
 // End of example implementational code

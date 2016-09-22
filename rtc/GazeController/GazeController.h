@@ -87,9 +87,9 @@ class GazeController
   // virtual RTC::ReturnCode_t onRateChanged(RTC::UniqueId ec_id);
 
   bool startGazeController();
-  bool stopGazeController();
-  bool setGazeControllerParam(OpenHRP::GazeControllerService::gazeParam i_param_);
-  bool getGazeControllerParam(OpenHRP::GazeControllerService::gazeParam& i_param_);
+  bool stopGazeController(double tm);
+  bool setGazeControllerParam(const OpenHRP::GazeControllerService::gazeParam &i_param_);
+  bool getGazeControllerParam(OpenHRP::GazeControllerService::gazeParam &i_param_);
   bool waitGazeControllerTransition();
 
  protected:
@@ -166,10 +166,11 @@ class GazeController
   //hrp::Vector3 target_rot;
 
   OpenHRP::GazeControllerService::BaseType base_type_;
-  bool use_sh_base_pos_rpy_;
+  bool use_estimated_rpy_;
   bool initialized_;
   int loop_;
   int transition_count_;
+  int max_transition_count_;
 };
 
 extern "C"

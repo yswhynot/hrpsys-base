@@ -20,8 +20,9 @@
 #include <cstdlib>
 
 
-#define TRANSITION_TIME 2.0
-#define MAX_TRANSITION_COUNT (static_cast<int>(TRANSITION_TIME/m_dt))
+#define DEFAULT_TRANSITION_TIME 2.0
+#define MIN_TRANSITION_TIME 0.2
+
 typedef coil::Guard<coil::Mutex> Guard;
 
 // Module specification
@@ -58,7 +59,7 @@ GazeController::GazeController(RTC::Manager* manager)
       m_debugLevel(0),
       m_robot(hrp::BodyPtr()),
       base_type_(OpenHRP::GazeControllerService::BAD_BASE_TYPE),
-      use_sh_base_pos_rpy_(false),
+      use_estimated_rpy_(false),
       initialized_(false),
       transition_count_(0)
 {
@@ -154,7 +155,7 @@ RTC::ReturnCode_t GazeController::onInitialize()
     }
 
     // setting from conf file
-    coil::vstring joints_str = coil::split(prop["joints_for_gaze"], ",");
+    coil::vstring joints_str = coil::split(prop["gaze_joints"], ",");
     if (joints_str.size() > 0) {
         for (size_t i = 0; i < joints_str.size(); i++) {
             std::string jointname;
@@ -214,9 +215,13 @@ RTC::ReturnCode_t GazeController::onInitialize()
     std::cerr << "[" << m_profile.instance_name << "] use TwoDofControllerParam";
     std::cerr << ", ke = " << p.ke << ", tc = " << p.tc << std::endl;
 
+    target_pos_(0) = 1000.0;
+    target_pos_(1) = 0;
+    target_pos_(2) = 0;
     loop_ = 0;
+
     initialized_ = true;
-    std::cerr << "[" << m_profile.instance_name << "] onInitialize()" << std::endl;
+    std::cerr << "[" << m_profile.instance_name << "] onInitialize() finished" << std::endl;
     return RTC::RTC_OK;
 }
 
@@ -259,6 +264,7 @@ RTC::ReturnCode_t GazeController::onDeactivated(RTC::UniqueId ec_id)
 }
 
 #define DEBUGP ((m_debugLevel==1 && loop_%200==0) || m_debugLevel > 1 )
+#define DEBUG_VERBOSE ( m_debugLevel > 1 )
 RTC::ReturnCode_t GazeController::onExecute(RTC::UniqueId ec_id)
 {
     //std::cout << "GazeController::onExecute(" << ec_id << ")" << std::endl;
@@ -286,7 +292,7 @@ RTC::ReturnCode_t GazeController::onExecute(RTC::UniqueId ec_id)
          m_qRef.data.length() ==  m_robot->numJoints() &&
          m_qCurrent.data.length() ==  m_robot->numJoints() ) {
 
-        if ( DEBUGP ) {
+        if ( DEBUG_VERBOSE ) {
             std::cerr << "[" << m_profile.instance_name << "] qRef = ";
             for ( int i = 0; i <  m_qRef.data.length(); i++ ){
                 std::cerr << " " << m_qRef.data[i];
@@ -300,7 +306,7 @@ RTC::ReturnCode_t GazeController::onExecute(RTC::UniqueId ec_id)
             }
             gazeControll();
             //stabilize();
-        } else if (transition_count_ != 0) {
+        } else if (transition_count_ > 0) {
             transition();
         } else {
             // if(tansition_count == 0) pass through
@@ -347,11 +353,15 @@ void GazeController::gazeControll (void) {
     {
         hrp::Matrix33 camR = tcam.link->R * tcam.localR;
         hrp::Vector3  camp = tcam.link->R * tcam.localPos + tcam.link->p;
-        //PRINT_VEC3("tcam_local: ", tcam.localPos);
-        //PRINT_VEC3("tcam_linkp: ", tcam.link->p);
-        //PRINT_VEC3("camp: ", camp);
+        if ( DEBUG_VERBOSE ) {
+            PRINT_VEC3("tcam_local: ", tcam.localPos);
+            PRINT_VEC3("tcam_linkp: ", tcam.link->p);
+            PRINT_VEC3("camp: ", camp);
+        }
         tgt_org = camR.transpose() * (targetWorld - camp);
-        //PRINT_VEC3("tgt: ", tgt_org);
+        if ( DEBUG_VERBOSE ) {
+            PRINT_VEC3("tgt: ", tgt_org);
+        }
     }
 
 #define DIFF_FOR_JACOBI 0.001
@@ -375,18 +385,22 @@ void GazeController::gazeControll (void) {
         J(1, i) = diff(1);
     }
     J *= (1 / DIFF_FOR_JACOBI);
-#if 0
-    std::cerr << "J" << std::endl;
-    std::cerr << "   " << J(0 ,0) << " " << J(0, 1) << std::endl;
-    std::cerr << "   " << J(1 ,0) << " " << J(1, 1) << std::endl;
-#endif
+
+    if ( DEBUG_VERBOSE ) {
+        std::cerr << "J" << std::endl;
+        std::cerr << "   " << J(0 ,0) << " " << J(0, 1) << std::endl;
+        std::cerr << "   " << J(1 ,0) << " " << J(1, 1) << std::endl;
+    }
+
     hrp::dmatrix Jt(gaze_joints.size(), 2);
     int ret = hrp::calcPseudoInverse(J, Jt);
-#if 0
-    std::cerr << "Jt" << std::endl;
-    std::cerr << "   " << Jt(0 ,0) << " " << Jt(0, 1) << std::endl;
-    std::cerr << "   " << Jt(1 ,0) << " " << Jt(1, 1) << std::endl;
-#endif
+
+    if ( DEBUG_VERBOSE ) {
+        std::cerr << "Jt" << std::endl;
+        std::cerr << "   " << Jt(0 ,0) << " " << Jt(0, 1) << std::endl;
+        std::cerr << "   " << Jt(1 ,0) << " " << Jt(1, 1) << std::endl;
+    }
+
     hrp::dvector ret_q(gaze_joints.size());
     hrp::dvector tgt(2);
     tgt(0) = - tgt_org[0];
@@ -397,33 +411,37 @@ void GazeController::gazeControll (void) {
         gaze_angles[i] = controllers[i].update(gaze_angles[i], gaze_angles[i] + ret_q(i));
     }
 
-    std::cerr << "retq:";
-    for(int i = 0; i < gaze_angles.size(); i++) {
-        std::cerr << " " << ret_q(i);
+    if ( DEBUG_VERBOSE ) {
+        std::cerr << "retq:";
+        for(int i = 0; i < gaze_angles.size(); i++) {
+            std::cerr << " " << ret_q(i);
+        }
+        std::cerr << std::endl;
+        for(int i = 0; i < gaze_angles.size(); i++) {
+            std::cerr << " " << gaze_angles[i];
+        }
+        std::cerr << std::endl;
     }
-    std::cerr << std::endl;
-
-    for(int i = 0; i < gaze_angles.size(); i++) {
-        std::cerr << " " << gaze_angles[i];
-    }
-    std::cerr << std::endl;
-
 
     for (int i = 0; i < gaze_joints.size(); i++) {
         m_qRef.data[gaze_joints[i]] = gaze_angles[i];
     }
 }
 void GazeController::transition (void) {
-    std::vector<double > ref_vec(gaze_angles.size());
     transition_count_--;
     // reference model
-    for (int i = 0; i < gaze_joints.size(); i++) {
-        ref_vec[i] = m_qRef.data[gaze_joints[i]];
-        gaze_angles[i] = gaze_angles[i] +  (MAX_TRANSITION_COUNT - transition_count_) * ((ref_vec[i] - gaze_angles[i])/MAX_TRANSITION_COUNT);
+    if ( DEBUG_VERBOSE ) {
+        std::cerr << "gz trans: " << transition_count_ << " / " << max_transition_count_ << std::endl;
     }
-
     for (int i = 0; i < gaze_joints.size(); i++) {
-        m_qRef.data[gaze_joints[i]] = gaze_angles[i];
+        double ref = m_qRef.data[gaze_joints[i]];
+        m_qRef.data[gaze_joints[i]] = gaze_angles[i]
+            +  (max_transition_count_ - transition_count_) * ((ref - gaze_angles[i])/max_transition_count_);
+        if ( DEBUG_VERBOSE ) {
+            std::cerr << "ref: " << ref;
+            std::cerr << ", gz: " << gaze_angles[i];
+            std::cerr << ", trans: " << m_qRef.data[gaze_joints[i]] << std::endl;
+        }
     }
 }
 
@@ -442,28 +460,38 @@ bool GazeController::setTargetPos(hrp::Vector3 &worldpos) {
 
 bool GazeController::startGazeController() {
     if(transition_count_ == 0) {
-        transition_count_ == -1; // start Gaze
+        for (int i = 0; i < gaze_joints.size(); i++) {
+            gaze_angles[i] = m_qRef.data[gaze_joints[i]];
+        }
+        transition_count_ = -1; // start Gaze
+        max_transition_count_ = (static_cast<int>(DEFAULT_TRANSITION_TIME/m_dt));
         return true;
     }
     return false;
 }
 
-bool GazeController::stopGazeController() {
+bool GazeController::stopGazeController(double tm) {
     if(transition_count_ == -1) {
-        transition_count_ = MAX_TRANSITION_COUNT;
+        if (tm != 0.0) {
+            max_transition_count_ = (static_cast<int>(tm/m_dt));
+        }
+        if (max_transition_count_ < (static_cast<int>(MIN_TRANSITION_TIME/m_dt))) {
+            max_transition_count_ = (static_cast<int>(MIN_TRANSITION_TIME/m_dt));
+        }
+        transition_count_ = max_transition_count_;
         return true;
     }
     return false;
 }
 
-bool GazeController::setGazeControllerParam(OpenHRP::GazeControllerService::gazeParam i_param_) {
+bool GazeController::setGazeControllerParam(const OpenHRP::GazeControllerService::gazeParam &i_param_) {
     if(!initialized_) return false;
 
     {
         Guard guard(m_mutex);
 
         base_type_ = i_param_.base_type;
-        use_sh_base_pos_rpy_ = i_param_.use_sh_base_pos_rpy;
+        use_estimated_rpy_ = i_param_.use_estimated_rpy;
         if(i_param_.base_type == OpenHRP::GazeControllerService::WORLD_POS) {
             target_link_ = NULL;
             target_name_ = "world";
@@ -502,22 +530,25 @@ bool GazeController::setGazeControllerParam(OpenHRP::GazeControllerService::gaze
             std::cerr << "   target_name: " << target_name_;
         }
         std::cerr << "   target_pos: " << target_pos_(0) << " " << target_pos_(1) << " " << target_pos_(2) << std::endl;
-        std::cerr << "   use_sh_rpy: " << use_sh_base_pos_rpy_;
+        std::cerr << "   use_estimated_rpy: " << use_estimated_rpy_ << std::endl;
     }
     return true;
 }
 
 bool GazeController::getGazeControllerParam(OpenHRP::GazeControllerService::gazeParam& i_param_) {
-    if(transition_count_ = -1) {
+    if(transition_count_ == -1) {
         i_param_.controller_mode = OpenHRP::GazeControllerService::MODE_GAZE;
-    } else if (transition_count_ = 0) {
+    } else if (transition_count_ == 0) {
         i_param_.controller_mode = OpenHRP::GazeControllerService::MODE_IDLE;
     } else {
         i_param_.controller_mode = OpenHRP::GazeControllerService::MODE_TRANSITION;
     }
     i_param_.base_type = base_type_;
-    i_param_.use_sh_base_pos_rpy = use_sh_base_pos_rpy_;
+    i_param_.use_estimated_rpy = use_estimated_rpy_;
     i_param_.linkname = target_name_.c_str();
+    i_param_.target[0] = target_pos_(0);
+    i_param_.target[1] = target_pos_(1);
+    i_param_.target[2] = target_pos_(2);
 
     return true;
 }

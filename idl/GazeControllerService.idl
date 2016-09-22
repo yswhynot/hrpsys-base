@@ -7,8 +7,7 @@ module OpenHRP
 
   interface GazeControllerService
   {
-    typedef sequence<double, 3> DblSequence3;
-
+    typedef double DblArray3[3];
     /**
      * @enum ControllerMode
      * @brief Mode of controller
@@ -42,7 +41,7 @@ module OpenHRP
      */
     struct gazeParam {
       ///
-      DblSequence3 target;
+      DblArray3 target;
       /// Controller mode.
       ControllerMode controller_mode;
       /// Coordinate Base
@@ -50,7 +49,7 @@ module OpenHRP
       ///
       string linkname;
       /// Use StateHolder basePos and baseRpy?
-      boolean use_sh_base_pos_rpy;
+      boolean use_estimated_rpy;
     };
 
     /**
@@ -60,22 +59,10 @@ module OpenHRP
     boolean startGazeController();
 
     /**
-     * @brief start gaze controller without waiting for transition.
-     * @return true if set successfully, false otherwise
-     */
-    boolean startGazeControllerNoWait();
-
-    /**
      * @brief stop gaze controller with waiting for transition.
      * @return true if set successfully, false otherwise
      */
-    boolean stopGazeController(in double tm);
-
-    /**
-     * @brief stop gaze controller without waiting for transition.
-     * @return true if set successfully, false otherwise
-     */
-    boolean stopGazeControllerNoWait(in double tm);
+    boolean stopGazeController(in double tm, in boolean wait);
 
     /**
      * @brief set gaze parameters.
@@ -94,6 +81,6 @@ module OpenHRP
     /**
      * @brief wait for gaze controller mode transition.
      */
-    void waitGazeControllerTransition();
+    boolean waitGazeControllerTransition();
   };
 };
