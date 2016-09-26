@@ -54,6 +54,7 @@ To use python scripts to create RT components, connect ports and get/set propert
     <li>\ref DataLogger</li>
     <li>\ref ExtractCameraImage</li>
     <li>\ref ForwardKinematics</li>
+    <li>\ref GazeController</li>
     <li>\ref GraspController</li>
     <li>\ref HGcontroller</li>
     <li>\ref ImageData2CameraImage</li>

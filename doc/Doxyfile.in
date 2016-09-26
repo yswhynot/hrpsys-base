@@ -478,6 +478,7 @@ INPUT		      =  @CMAKE_CURRENT_SOURCE_DIR@/package.h \
 		      @CMAKE_CURRENT_SOURCE_DIR@/../rtc/DataLogger \
 		      @CMAKE_CURRENT_SOURCE_DIR@/../rtc/ExtractCameraImage \
 		      @CMAKE_CURRENT_SOURCE_DIR@/../rtc/ForwardKinematics \
+		      @CMAKE_CURRENT_SOURCE_DIR@/../rtc/GazeController \
 		      @CMAKE_CURRENT_SOURCE_DIR@/../rtc/GraspController \
 		      @CMAKE_CURRENT_SOURCE_DIR@/../rtc/HGcontroller \
 		      @CMAKE_CURRENT_SOURCE_DIR@/../rtc/ImageData2CameraImage \

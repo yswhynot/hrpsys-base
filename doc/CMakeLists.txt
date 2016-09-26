@@ -33,6 +33,7 @@ set(input_files package.h utilities.h
 		      ../rtc/RemoveForceSensorLinkOffset/RemoveForceSensorLinkOffset.txt
 		      ../rtc/CollisionDetector/CollisionDetector.txt
 		      ../rtc/PDcontroller/PDcontroller.txt
+		      ../rtc/GazeController/Gazecontroller.txt
 		      ../lib/io/iob.h
 		      ../idl/CollisionDetectorService.idl
 		      ../idl/DataLoggerService.idl
@@ -51,6 +52,7 @@ set(input_files package.h utilities.h
 		      ../idl/KalmanFilterService.idl
 		      ../idl/RemoveForceSensorLinkOffsetService.idl
 		      ../idl/ReferenceForceUpdaterService.idl
+		      ../idl/GazeControllerService.idl
 		      )
 configure_file(Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
 set(output_dir ${CMAKE_CURRENT_BINARY_DIR}/html)
