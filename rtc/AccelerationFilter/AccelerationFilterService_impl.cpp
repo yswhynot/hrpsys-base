@@ -12,13 +12,13 @@
  */
 AccelerationFilterService_impl::AccelerationFilterService_impl()
 {
-  // Please add extra constructor code here.
+    // Please add extra constructor code here.
 }
 
 
 AccelerationFilterService_impl::~AccelerationFilterService_impl()
 {
-  // Please add extra destructor code here.
+    // Please add extra destructor code here.
 }
 
 
@@ -27,7 +27,7 @@ AccelerationFilterService_impl::~AccelerationFilterService_impl()
  */
 ::CORBA::Boolean AccelerationFilterService_impl::resetFilter(OpenHRP::AccelerationFilterService::ControlMode mode)
 {
-  // Please insert your code here and remove the following warning pragma
+    // Please insert your code here and remove the following warning pragma
     return true;
 }
 

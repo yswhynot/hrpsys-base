@@ -15,21 +15,21 @@
  * Example class implementing IDL interface OpenHRP::AccelerationFilterService
  */
 class AccelerationFilterService_impl
- : public virtual POA_OpenHRP::AccelerationFilterService,
-   public virtual PortableServer::RefCountServantBase
+    : public virtual POA_OpenHRP::AccelerationFilterService,
+      public virtual PortableServer::RefCountServantBase
 {
- private:
-   // Make sure all instances are built on the heap by making the
-   // destructor non-public
-   //virtual ~OpenHRP_AccelerationFilterService_impl();
+private:
+    // Make sure all instances are built on the heap by making the
+    // destructor non-public
+    //virtual ~OpenHRP_AccelerationFilterService_impl();
 
- public:
-   // standard constructor
-   AccelerationFilterService_impl();
-   virtual ~AccelerationFilterService_impl();
+public:
+    // standard constructor
+    AccelerationFilterService_impl();
+    virtual ~AccelerationFilterService_impl();
 
-   // attributes and operations
-   ::CORBA::Boolean resetFilter(OpenHRP::AccelerationFilterService::ControlMode mode);
+    // attributes and operations
+    ::CORBA::Boolean resetFilter(OpenHRP::AccelerationFilterService::ControlMode mode);
 
 };
 
