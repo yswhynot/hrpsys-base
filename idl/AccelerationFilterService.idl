@@ -1,0 +1,28 @@
+/**
+ * @file AccelerationFilterService.idl
+ * @brief Services for the acceleration-filter interface
+ */
+module OpenHRP
+{
+
+  interface AccelerationFilterService
+  {
+    /**
+     * @enum ControlMode
+     * @brief Mode of control
+     */
+    enum ControlMode {
+      MODE_IDLE,
+      MODE_ZERO_POSITION,
+      MODE_BASE_POSITION,
+      MODE_VELOCITY
+    };
+
+    /**
+     * @brief reset filter
+     * @return true if set successfully, false otherwise
+     */
+    boolean resetFilter(in ControlMode mode);
+
+  };
+};
