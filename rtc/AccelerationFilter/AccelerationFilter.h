@@ -137,9 +137,12 @@ public:
 
 private:
     double m_dt;
+    double m_gravity;
     bool m_use_filter_bool;
     hrp::Vector3 m_global_vel;
+    hrp::Vector3 m_min_vel;
     std::vector<IIRFilter > m_filters;
+    hrp::Vector3 m_previous_pos;
 };
 
 

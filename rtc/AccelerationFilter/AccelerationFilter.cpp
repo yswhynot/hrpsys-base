@@ -79,12 +79,52 @@ RTC::ReturnCode_t AccelerationFilter::onInitialize()
     }
     RTC::Properties& prop = getProperties();
     if ( ! coil::stringTo(m_dt, prop["dt"].c_str()) ) {
-        std::cerr << "[" << m_profile.instance_name << "]failed to get dt" << std::endl;
+        std::cerr << "[" << m_profile.instance_name << "] failed to get dt" << std::endl;
         return RTC::RTC_ERROR;
     }
     // read gravity param
-    // read filter param
+    if ( ! coil::stringTo(m_gravity, prop["gravity"].c_str()) ) {
+        m_gravity = -9.8;
+    }
     // read reset threshold -> min_vel
+    {
+        coil::vstring reset_threshold_str = coil::split(prop["reset_velocity_threshold"], ",");
+        if (reset_threshold_str.size() > 2) {
+            for(int i = 0; i < 3; i++) {
+                double val = -1;
+                coil::stringTo(val, reset_threshold_str[i].c_str());
+                m_min_vel[i] = val;
+            }
+        } else {
+            // no threshold
+            m_min_vel[0] = -1;
+            m_min_vel[1] = -1;
+            m_min_vel[2] = -1;
+        }
+    }
+    // read filter param
+    {
+        coil::vstring filter_str = coil::split(prop["iir_filter_setting"], ",");
+        int dim = (filter_str.size() - 1)/2;
+        std::vector<double> bb;
+        std::vector<double> aa;
+        for(int i = 0; i < dim + 1; i++) {
+            double val = -1;
+            coil::stringTo(val, filter_str[i].c_str());
+            bb.push_back(val);
+        }
+        for(int i = 0; i < filter_str.size() - dim - 1; i++) {
+            double val = -1;
+            coil::stringTo(val, filter_str[dim+1+i].c_str());
+            aa.push_back(val);
+        }
+        for (int i = 0; i < 3; i++) {
+            IIRFilter fl(std::string(m_profile.instance_name));
+            fl.setParameter(dim, aa, bb);
+            m_filters.push_back(fl);
+        }
+    }
+    // print params
 
     // </rtc-template>
     return RTC::RTC_OK;
@@ -131,14 +171,18 @@ RTC::ReturnCode_t AccelerationFilter::onExecute(RTC::UniqueId ec_id)
     if (m_rateInIn.isNew()) {
         m_rateInIn.read();
     }
+    hrp::Vector3 expected_vel;
     if (m_posInIn.isNew()) {
         m_posInIn.read();
+        hrp::Vector3 pos(m_posIn.data.x, m_posIn.data.y, m_posIn.data.z);
+        expected_vel = pos - m_previous_pos;
+        expected_vel /= m_dt;
+        m_previous_pos = pos;
     }
     //
     if (m_accInIn.isNew()) {
         m_accInIn.read();
-
-        hrp::Vector3 gravity(0, 0, -9.8);
+        hrp::Vector3 gravity(0, 0, m_gravity);
         hrp::Vector3 acc(m_accIn.data.ax, m_accIn.data.ay, m_accIn.data.az);
         hrp::Matrix33 imuR = hrp::rotFromRpy(m_rpyIn.data.r,
                                              m_rpyIn.data.p,
@@ -146,14 +190,10 @@ RTC::ReturnCode_t AccelerationFilter::onExecute(RTC::UniqueId ec_id)
         hrp::Vector3 acc_wo_g = imuR * acc + gravity;
 
         for (int i = 0; i < 3; i++) {
-#if 0
-            if (std::abs(_estimated_vel[i]) < min_vel) {
-                global_velocity[i] = 0;
-                prev_raw_acc[i] = 0;
-                prev_filtered_acc[i] = 0;
+            if (std::abs(expected_vel[i]) < m_min_vel[i]) {
+                m_global_vel[i] = 0;
                 continue;
             }
-#endif
             if (m_use_filter_bool) {
                 double filtered_acc =  m_filters[i].passFilter(acc_wo_g[i]);
                 m_global_vel[i] += filtered_acc * m_dt;

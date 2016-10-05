@@ -10,6 +10,9 @@
 
 #ifndef ACCELERATIONFILTERSERVICE_IMPL_H
 #define ACCELERATIONFILTERSERVICE_IMPL_H
+
+class AccelerationFilter;
+
  
 /*
  * Example class implementing IDL interface OpenHRP::AccelerationFilterService
@@ -22,6 +25,7 @@ private:
     // Make sure all instances are built on the heap by making the
     // destructor non-public
     //virtual ~OpenHRP_AccelerationFilterService_impl();
+    AccelerationFilter *m_instance;
 
 public:
     // standard constructor
@@ -31,6 +35,8 @@ public:
     // attributes and operations
     ::CORBA::Boolean resetFilter(OpenHRP::AccelerationFilterService::ControlMode mode);
 
+    //
+    void setInstance(AccelerationFilter *i_instance);
 };
 
 
