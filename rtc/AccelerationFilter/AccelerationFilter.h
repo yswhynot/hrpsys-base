@@ -89,7 +89,7 @@ public:
     // virtual RTC::ReturnCode_t onRateChanged(RTC::UniqueId ec_id);
 
 
- protected:
+protected:
     // Configuration variable declaration
     // <rtc-template block="config_declare">
     std::string m_use_filter;

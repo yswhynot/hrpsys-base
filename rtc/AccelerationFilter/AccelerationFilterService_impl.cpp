@@ -33,7 +33,17 @@ AccelerationFilterService_impl::~AccelerationFilterService_impl()
     return true;
 }
 
+::CORBA::Boolean AccelerationFilterService_impl::setAccelerationFilterParam(
+    const ::OpenHRP::AccelerationFilterService::AccelerationFilterParam& i_param)
+{
+    return true;
+}
 
+::CORBA::Boolean AccelerationFilterService_impl::getAccelerationFilterParam(
+    OpenHRP::AccelerationFilterService::AccelerationFilterParam_out i_param)
+{
+    return true;
+}
 
 // End of example implementational code
 
