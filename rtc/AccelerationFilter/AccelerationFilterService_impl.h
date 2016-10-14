@@ -33,9 +33,10 @@ public:
     virtual ~AccelerationFilterService_impl();
 
     // attributes and operations
-    ::CORBA::Boolean resetFilter(OpenHRP::AccelerationFilterService::ControlMode mode);
     ::CORBA::Boolean setAccelerationFilterParam(const ::OpenHRP::AccelerationFilterService::AccelerationFilterParam& i_param);
     ::CORBA::Boolean getAccelerationFilterParam(::OpenHRP::AccelerationFilterService::AccelerationFilterParam_out  i_param);
+    ::CORBA::Boolean resetFilter(OpenHRP::AccelerationFilterService::ControlMode mode,
+                                 const ::OpenHRP::AccelerationFilterService::DblArray3 vel);
     //
     void setInstance(AccelerationFilter *i_instance);
 };

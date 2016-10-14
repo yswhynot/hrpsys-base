@@ -87,13 +87,14 @@ public:
     // The action that is invoked when execution context's rate is changed
     // no corresponding operation exists in OpenRTm-aist-0.2.0
     // virtual RTC::ReturnCode_t onRateChanged(RTC::UniqueId ec_id);
-
+    bool resetFilter(const OpenHRP::AccelerationFilterService::ControlMode &mode,
+                     const double *vel);
+    bool setParam(const ::OpenHRP::AccelerationFilterService::AccelerationFilterParam& i_param);
+    bool getParam(::OpenHRP::AccelerationFilterService::AccelerationFilterParam &i_param);
 
 protected:
     // Configuration variable declaration
     // <rtc-template block="config_declare">
-    std::string m_use_filter;
-
     // </rtc-template>
 
     // DataInPort declaration
@@ -106,15 +107,14 @@ protected:
     InPort<TimedOrientation3D> m_rpyInIn;
     TimedPoint3D m_posIn;
     InPort<TimedPoint3D> m_posInIn;
-
     // </rtc-template>
 
     // DataOutPort declaration
     // <rtc-template block="outport_declare">
     TimedVector3D m_velOut;
     OutPort<TimedVector3D> m_velOutOut;
-    TimedPoint3D m_posOut;
-    OutPort<TimedPoint3D> m_posOutOut;
+    //TimedPoint3D m_posOut;
+    //OutPort<TimedPoint3D> m_posOutOut;
 
     // </rtc-template>
 
@@ -136,13 +136,15 @@ protected:
     // </rtc-template>
 
 private:
+    typedef boost::shared_ptr< IIRFilter> IIRFilterPtr;
     double m_dt;
     double m_gravity;
     bool m_use_filter_bool;
     hrp::Vector3 m_global_vel;
-    hrp::Vector3 m_min_vel;
-    std::vector<IIRFilter > m_filters;
+    std::vector<IIRFilterPtr > m_filters;
     hrp::Vector3 m_previous_pos;
+
+    coil::Mutex m_mutex;
 };
 
 

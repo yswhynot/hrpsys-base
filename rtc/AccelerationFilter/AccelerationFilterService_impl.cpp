@@ -27,22 +27,25 @@ AccelerationFilterService_impl::~AccelerationFilterService_impl()
 /*
  * Methods corresponding to IDL attributes and operations
  */
-::CORBA::Boolean AccelerationFilterService_impl::resetFilter(OpenHRP::AccelerationFilterService::ControlMode mode)
-{
-    // Please insert your code here and remove the following warning pragma
-    return true;
-}
-
 ::CORBA::Boolean AccelerationFilterService_impl::setAccelerationFilterParam(
     const ::OpenHRP::AccelerationFilterService::AccelerationFilterParam& i_param)
 {
-    return true;
+    return m_instance->setParam(i_param);
 }
 
 ::CORBA::Boolean AccelerationFilterService_impl::getAccelerationFilterParam(
     OpenHRP::AccelerationFilterService::AccelerationFilterParam_out i_param)
 {
-    return true;
+    i_param = new OpenHRP::AccelerationFilterService::AccelerationFilterParam();
+    i_param->filter_param.length(0);
+    return m_instance->getParam(*i_param);
+}
+
+::CORBA::Boolean AccelerationFilterService_impl::resetFilter(OpenHRP::AccelerationFilterService::ControlMode mode,
+                                                             const ::OpenHRP::AccelerationFilterService::DblArray3 vel)
+{
+    // Please insert your code here and remove the following warning pragma
+    return m_instance->resetFilter(mode, vel);
 }
 
 // End of example implementational code
