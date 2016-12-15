@@ -46,7 +46,8 @@ public:
     virtual const char *name() = 0;
     virtual void clear() = 0;
     virtual void dumpLog(std::ostream& os, unsigned int precision = 0) = 0;
-    virtual void log() = 0;
+    virtual void log(unsigned int precision = 0) = 0;
+    virtual bool openLogFile(std::string &i_basename) = 0;
     void maxLength(unsigned int len) { m_maxLength = len; }
 protected:
     unsigned int m_maxLength;
@@ -165,6 +166,7 @@ class DataLogger
   bool m_suspendFlag;
   coil::Mutex m_suspendFlagMutex;
   unsigned int m_log_precision;
+  unsigned int m_constant_logging;
   int dummy;
 };
 

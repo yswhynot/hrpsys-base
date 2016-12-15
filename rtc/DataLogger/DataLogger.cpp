@@ -30,6 +30,7 @@ static const char* nullcomponent_spec[] =
     "lang_type",         "compile",
     // Configuration variables
     "conf.default.log_precision", "0",
+    "conf.default.constant_logging", "0",
     ""
   };
 // </rtc-template>
@@ -152,22 +153,35 @@ public:
     InPort<T>& port(){
             return m_port;
     }
-    void log(){
+    void log(unsigned int precision = 0){
         if (m_port.isNew()){
             m_port.read();
-            m_log.push_back(m_data);
-            while (m_log.size() > m_maxLength){
-                m_log.pop_front();
+            if (ofs.is_open()) {
+                printLog(ofs, m_data, precision);
+            } else {
+                m_log.push_back(m_data);
+                while (m_log.size() > m_maxLength){
+                    m_log.pop_front();
+                }
             }
         }
     }
     void clear(){
         m_log.clear();
+        ofs.close();
+    }
+    bool openLogFile(std::string &i_basename) {
+        std::string fname(i_basename);
+        fname.append(".");
+        fname.append(this->name());
+        ofs.open(fname.c_str());
+        return ofs.is_open();
     }
 protected:
     InPort<T> m_port;
     T m_data;
     std::deque<T> m_log;
+    std::ofstream ofs;
 };
 
 class LoggerPortForPointCloud : public LoggerPort<PointCloudTypes::PointCloud>
@@ -195,6 +209,7 @@ DataLogger::DataLogger(RTC::Manager* manager)
     // </rtc-template>
     m_suspendFlag(false),
     m_log_precision(0),
+    m_constant_logging(0),
 	dummy(0)
 {
   m_service0.setLogger(this);
@@ -210,6 +225,7 @@ RTC::ReturnCode_t DataLogger::onInitialize()
 {
   std::cerr << "[" << m_profile.instance_name << "] onInitialize()" << std::endl;
   bindParameter("log_precision", m_log_precision, "0");
+  bindParameter("constant_logging", m_constant_logging, "0");
 
   // Registration: InPort/OutPort/Service
   // <rtc-template block="registration">
@@ -293,7 +309,7 @@ RTC::ReturnCode_t DataLogger::onExecute(RTC::UniqueId ec_id)
     if (m_suspendFlag) return RTC::RTC_OK;
     
     for (unsigned int i=0; i<m_ports.size(); i++){
-      m_ports[i]->log();
+      m_ports[i]->log(m_log_precision);
     }
   }
   return RTC::RTC_OK;
@@ -438,6 +454,15 @@ bool DataLogger::add(const char *i_type, const char *i_name)
 bool DataLogger::save(const char *i_basename)
 {
   suspendLogging();
+  if (m_constant_logging != 0) {
+      for (unsigned int i=0; i<m_ports.size(); i++){
+          std::string basename = i_basename;
+          m_ports[i]->openLogFile(basename);
+      }
+      std::cerr << "[" << m_profile.instance_name << "] Start constant log to " << i_basename << ".*" << std::endl;
+      resumeLogging();
+      return true;
+  }
   bool ret = true;
   for (unsigned int i=0; i<m_ports.size(); i++){
     std::string fname = i_basename;
