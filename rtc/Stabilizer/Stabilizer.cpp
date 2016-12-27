@@ -1291,7 +1291,17 @@ void Stabilizer::calcStateForEmergencySignal()
     if (is_cp_outside) {
       if (initial_cp_too_large_error || loop % static_cast <int>(0.2/dt) == 0 ) { // once per 0.2[s]
         std::cerr << "[" << m_profile.instance_name << "] [" << m_qRef.tm
-                  << "] CP too large error " << "[" << act_cp(0) << "," << act_cp(1) << "] [m]" << std::endl;
+                  << "] CP too large error, act " << "[" << act_cp(0) << "," << act_cp(1) << "] [m]"
+                  << ", rel_act [" << rel_act_cp(0) << "," << rel_act_cp(1) << "] [m]" << std::endl;
+        std::cerr << "[" << m_profile.instance_name << "] [" << m_qRef.tm
+                  << "] support leg: " << support_leg
+                  << ", sbg_cog_offset: " << sbp_cog_offset[0] << " " << sbp_cog_offset[1] << " " << sbp_cog_offset[2] << std::endl;
+        if (m_debugLevel > 0) {
+            std::cerr << "cp_check_margin: " << cp_check_margin[0] << " " << cp_check_margin[1]
+                      << " " << cp_check_margin[2] << " " <<  cp_check_margin[3] << std::endl;
+            std::cerr << "ee0: " << rel_ee_pos[0][0] << ", " << rel_ee_pos[0][1] << ", " << rel_ee_pos[0][2] << std::endl;
+            std::cerr << "ee1: " << rel_ee_pos[1][0] << ", " << rel_ee_pos[1][1] << ", " << rel_ee_pos[1][2] << std::endl;
+        }
       }
       initial_cp_too_large_error = false;
     } else {
