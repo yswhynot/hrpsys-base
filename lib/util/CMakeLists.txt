@@ -36,6 +36,10 @@ set(headers
   BVutil.h
   )
 
+set(Boost_USE_MULTITHREADED ON) 
+
+find_package(Boost REQUIRED COMPONENTS thread system)
+include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${LIBXML2_INCLUDE_DIR})
 include_directories(${SDL_INCLUDE_DIR})
 include_directories(${OpenCV_INCLUDE_DIRS})
@@ -52,9 +56,8 @@ target_link_libraries(hrpsysUtil
   ${SDL_LIBRARY} 
   ${GLUT_LIBRARIES} 
   ${QHULL_LIBRARIES}
+  ${Boost_LIBRARIES}
   GLEW
-  boost_thread-mt
-  boost_system-mt
   )
 
 set(target hrpsysUtil)
