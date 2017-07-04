@@ -721,7 +721,7 @@ bool CollisionDetector::setTolerance(const char *i_link_pair_name, double i_tole
 }
 
 bool CollisionDetector::setCollisionLoop(int input_loop) {
-	if ((input_loop > 0) && (input_loop < 50)) {
+	if (input_loop > 0) {
 		m_collision_loop = input_loop;
 		return true;
 	}
