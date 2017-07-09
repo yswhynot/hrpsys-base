@@ -472,7 +472,7 @@ RTC::ReturnCode_t CollisionDetector::onExecute(RTC::UniqueId ec_id)
                 CollisionLinkPair* c = it->second;
                 boost::intrusive_ptr<CollisionLibraryLinkPair> p = c->pair;
                 tp.lines.push_back(std::make_pair(c->point0, c->point1));
-                if ( c->distance <= c->pair->getTolerance() ) {
+                if ( c->distance <= 0 ) {
                     m_safe_posture = false;
                     if ( loop%200==0 || last_safe_posture ) {
                         hrp::JointPathPtr jointPath = m_robot->getJointPath(p->link(0),p->link(1));
@@ -791,7 +791,7 @@ bool CollisionDetector::enable(void)
         CollisionLinkPair* c = it->second;
         boost::intrusive_ptr<CollisionLibraryLinkPair> p = c->pair;
         c->distance = c->pair->computeDistance(c->point0.data(), c->point1.data());
-        if ( c->distance <= c->pair->getTolerance() ) {
+        if ( c->distance <= 0 ) {
             hrp::JointPathPtr jointPath = m_robot->getJointPath(p->link(0),p->link(1));
             std::cerr << "[" << m_profile.instance_name << "] CollisionDetector cannot be enabled because of collision" << std::endl;
             std::cerr << "[" << m_profile.instance_name << "] " << i << "/" << m_pair.size() << " pair: " << p->link(0)->name << "/" << p->link(1)->name << "(" << jointPath->numJoints() << "), distance = " << c->distance << std::endl;
