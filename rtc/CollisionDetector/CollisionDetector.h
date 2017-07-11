@@ -35,9 +35,8 @@
 #include "CollisionDetectorService_impl.h"
 #include "../SoftErrorLimiter/beep.h"
 
+#include "FCLCollision.h"
 #include "fcl/broadphase/broadphase.h"
-#include "fcl/distance.h"
-#include "fcl/shape/geometric_shape_to_BVH_model.h"
 
 // Service implementation headers
 // <rtc-template block="service_impl_h">
@@ -174,6 +173,10 @@ class CollisionDetector
   // FCL
   void setupFCLModel(hrp::BodyPtr i_body);
   void setupFCLModel(hrp::Link *i_link);
+  void setupFCLModelByLists(hrp::BodyPtr i_body, int id);
+  void setupFCLModelByLists(hrp::Link *i_link, int id);
+  void updateJointPose(int id);
+  void readCollisionList(std::string& input, int id);
 #endif // USE_FCL
 
  private:
@@ -205,6 +208,8 @@ class CollisionDetector
   fcl::BroadPhaseCollisionManager* m_col_manager_r;
   std::vector<fcl::CollisionObject*> m_objects[2];
   std::vector<std::string> m_link_names[2];
+  fcl::CollisionData m_collision_data;
+  std::vector<unsigned int> m_link_index[2];
 #endif // USE_FCL
 
   std::vector<int> m_curr_collision_mask, m_init_collision_mask;
