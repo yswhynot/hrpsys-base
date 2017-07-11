@@ -431,20 +431,20 @@ RTC::ReturnCode_t CollisionDetector::onExecute(RTC::UniqueId ec_id)
         //  1. current safe angle or collision angle  .. check based on qRef
         //  2. recovery                               .. check based on q'(m_recover_jointdata)
         if (m_recover_time == 0 || m_recover_time == default_recover_time ) {  // 1. current safe angle or collision angle
-            if ( m_loop_for_check == 0 ) { // update robot posutre for each m_loop_for_check timing
-                for ( unsigned int i = 0; i < m_robot->numJoints(); i++ ){
-                    m_robot->joint(i)->q = m_qRef.data[i];
-                }
+            // if ( m_loop_for_check == 0 ) { // update robot posutre for each m_loop_for_check timing
+            for ( unsigned int i = 0; i < m_robot->numJoints(); i++ ){
+                m_robot->joint(i)->q = m_qRef.data[i];
             }
+            // }
         }else{  // 2. recovery
           for ( unsigned int i = 0; i < m_robot->numJoints(); i++ ){
-            if ( m_loop_for_check == 0 ) { // update robot posutre for each m_loop_for_check timing
+            // if ( m_loop_for_check == 0 ) { // update robot posutre for each m_loop_for_check timing
               if ( m_curr_collision_mask[i] == 1) {// joint with 1 (do not move when collide :default), need to be updated using recover(safe) data
                   m_robot->joint(i)->q = m_recover_jointdata[i];
               }else{                               // joint with 0 (move even if collide), need to be updated using reference(dangerous) data
                   m_robot->joint(i)->q = m_qRef.data[i];
               }
-            }
+            // }
           }
         }
         //        }
@@ -453,18 +453,18 @@ RTC::ReturnCode_t CollisionDetector::onExecute(RTC::UniqueId ec_id)
 	coil::TimeValue tm1 = coil::gettimeofday();
         std::map<std::string, CollisionLinkPair *>::iterator it = m_pair.begin();
 	for (int i = 0; it != m_pair.end(); it++, i++){
-            int sub_size = (m_pair.size() + m_collision_loop -1) / m_collision_loop;  // 10 / 3 = 3  / floor
+            // int sub_size = (m_pair.size() + m_collision_loop -1) / m_collision_loop;  // 10 / 3 = 3  / floor
             // 0 : 0 .. sub_size-1                            // 0 .. 2
             // 1 : sub_size ... sub_size*2-1                  // 3 .. 5
             // k : sub_size*k ... sub_size*(k+1)-1            // 6 .. 8
             // n : sub_size*n ... m_pair.size()               // 9 .. 10
-            if ( sub_size*m_loop_for_check <= i && i < sub_size*(m_loop_for_check+1) ) {
-                CollisionLinkPair* c = it->second;
-                c->distance = c->pair->computeDistance(c->point0.data(), c->point1.data());
-                //std::cerr << i << ":" << (c->distance<=c->pair->getTolerance() ) << "/" << c->distance << " ";
-            }
+            // if ( sub_size*m_loop_for_check <= i && i < sub_size*(m_loop_for_check+1) ) {
+            CollisionLinkPair* c = it->second;
+            c->distance = c->pair->computeDistance(c->point0.data(), c->point1.data());
+            //std::cerr << i << ":" << (c->distance<=c->pair->getTolerance() ) << "/" << c->`distance << " ";
+            // }
         }
-        if ( m_loop_for_check == m_collision_loop-1 ) {
+        // if ( m_loop_for_check == m_collision_loop-1 ) {
             bool last_safe_posture = m_safe_posture;
             m_safe_posture = true;
             it = m_pair.begin();
@@ -542,7 +542,7 @@ RTC::ReturnCode_t CollisionDetector::onExecute(RTC::UniqueId ec_id)
                     std::cerr << std::endl;
                 }
             }
-        }
+        // }
         //     mode : m_safe_posture : recover_time  : set as q
         // safe     :           true :            0  : qRef
         // collison :          false :         >  0  : q( do nothing)
@@ -557,17 +557,12 @@ RTC::ReturnCode_t CollisionDetector::onExecute(RTC::UniqueId ec_id)
           // collision_mask used to select output                0: passthough reference data, 1 output safe data
           std::fill(m_curr_collision_mask.begin(), m_curr_collision_mask.end(), 0); // false(0) clear output data
         } else {
-          static int collision_loop_recover = 0;
           if(m_safe_posture){  //recover
             //std::cerr << "recover-------------- " << std::endl;
             for ( unsigned int i = 0; i < m_q.data.length(); i++ ) {
               m_q.data[i] = m_recover_jointdata[i];
             }
             m_recover_time = m_recover_time - i_dt;
-          } else if (m_collision_loop > 1 && (m_recover_time != default_recover_time)) { // collision with collision_loop
-            //std::cerr << "collision_loop-------------- " << std::endl;
-            collision_loop_recover = m_collision_loop;
-            m_recover_time = default_recover_time;      // m_recover_time should be set based on difference between qRef and q
           } else { //collision
             //std::cerr << "collision-------------- " << std::endl;
             //do nothing (stay previous m_q)
@@ -587,18 +582,9 @@ RTC::ReturnCode_t CollisionDetector::onExecute(RTC::UniqueId ec_id)
             m_recover_jointdata[i] = m_q.data[i] + (m_qRef.data[i] - m_q.data[i]) / m_recover_time;
           }
 #else
-          if (collision_loop_recover != 0) {
-            collision_loop_recover--;
-            for ( unsigned int i = 0; i < m_q.data.length(); i++ ) {
-              m_q.data[i] =
-                  m_lastsafe_jointdata[i] + collision_loop_recover * ((m_q.data[i] - m_lastsafe_jointdata[i])/m_collision_loop);
-            }
-          } else {
-          collision_loop_recover = 0;
           //minjerk interpolation
           m_interpolator->setGoal(m_qRef.data.get_buffer(), m_recover_time);
           m_interpolator->get(m_recover_jointdata);
-          }
 #endif
         }
         if ( DEBUGP ) {
@@ -639,7 +625,7 @@ RTC::ReturnCode_t CollisionDetector::onExecute(RTC::UniqueId ec_id)
           collision_beep_count = 0;
         }
 
-        if ( ++m_loop_for_check >= m_collision_loop ) m_loop_for_check = 0;
+        // if ( ++m_loop_for_check >= m_collision_loop ) m_loop_for_check = 0;
         tp.posture.resize(m_qRef.data.length());
         for (size_t i=0; i<tp.posture.size(); i++) tp.posture[i] = m_q.data[i];
 #ifdef USE_HRPSYSUTIL
@@ -652,7 +638,7 @@ RTC::ReturnCode_t CollisionDetector::onExecute(RTC::UniqueId ec_id)
             m_state.angle[i] = m_robot->joint(i)->q;
         }
 
-        if ( m_loop_for_check == 0 ) {
+        // if ( m_loop_for_check == 0 ) {
             for (unsigned int i = 0; i < m_robot->numLinks(); i++ ){
                 m_state.collide[i] = m_link_collision[i];
             }
@@ -673,11 +659,11 @@ RTC::ReturnCode_t CollisionDetector::onExecute(RTC::UniqueId ec_id)
                 v[1] = line.second.data()[1];
                 v[2] = line.second.data()[2];
             }
-        }
+        // }
          m_state.computation_time = (tm2-tm1)*1000.0;
         m_state.safe_posture = m_safe_posture;
         m_state.recover_time = m_recover_time;
-        m_state.loop_for_check = m_loop_for_check;
+        m_state.loop_for_check = 0;
     }
     if (is_beep_port_connected) {
       bc.setDataPort(m_beepCommand);
