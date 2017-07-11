@@ -174,7 +174,7 @@ class CollisionDetector
   void setupFCLModel(hrp::BodyPtr i_body);
   void setupFCLModel(hrp::Link *i_link);
   void setupFCLModelByLists(hrp::BodyPtr i_body, int id);
-  void setupFCLModelByLists(hrp::Link *i_link, int id);
+  void setupFCLModelByLists(hrp::Link *i_link, int id, unsigned int index);
   void updateJointPose(int id);
   void readCollisionList(std::string& input, int id);
 #endif // USE_FCL

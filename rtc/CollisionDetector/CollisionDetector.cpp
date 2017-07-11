@@ -685,13 +685,9 @@ void CollisionDetector::setupFCLModelByLists(hrp::BodyPtr i_body, int id)
 {
     m_FCLLinks.resize(i_body->numLinks());
     //std::cerr << i_body->numLinks() << std::endl;
-    std::vector<std::string> v = m_link_names[id];
     for (unsigned int i=0; i<i_body->numLinks(); i++) {
         assert(i_body->link(i)->index == i);
-        if(std::find(v.begin(), v.end(), i_body->link(i)->name) != v.end()) {
-            m_link_index[id].push_back(i);
-            setupFCLModelByLists(i_body->link(i), id);
-        }
+        setupFCLModelByLists(i_body->link(i), id, i);
     }
 }
 #endif // USE_FCL
@@ -915,7 +911,7 @@ void CollisionDetector::setupFCLModel(hrp::Link *i_link)
 #endif // USE_FCL
 
 #ifdef USE_FCL
-void CollisionDetector::setupFCLModelByLists(hrp::Link *i_link, int id)
+void CollisionDetector::setupFCLModelByLists(hrp::Link *i_link, int id, unsigned int index)
 {
     std::vector<fcl::Vec3f> fcl_vertices;
     std::vector<fcl::Triangle> fcl_triangles;
@@ -1051,14 +1047,19 @@ void CollisionDetector::setupFCLModelByLists(hrp::Link *i_link, int id)
     }
 
     // setting up fcl collision object
-    const hrp::Vector3& p1 = i_link->p;
-    hrp::Matrix33 r1 = i_link->attitude();
-    fcl::Vec3f fT(p1(0), p1(1), p1(2));
-    fcl::Matrix3f fR(r1(0, 0), r1(0, 1), r1(0, 2),
-                      r1(1, 0), r1(1, 1), r1(1, 2),
-                      r1(2, 0), r1(2, 1), r1(2, 2));
-    fcl::Transform3f pose(fR, fT);
-    m_objects[id].push_back(new fcl::CollisionObject(*fcl_model, pose));
+    std::vector<std::string> v = m_link_names[id];
+    if(std::find(v.begin(), v.end(), i_link->name) != v.end()) {
+        m_link_index[id].push_back(index);
+        const hrp::Vector3& p1 = i_link->p;
+        hrp::Matrix33 r1 = i_link->attitude();
+        fcl::Vec3f fT(p1(0), p1(1), p1(2));
+        fcl::Matrix3f fR(r1(0, 0), r1(0, 1), r1(0, 2),
+                          r1(1, 0), r1(1, 1), r1(1, 2),
+                          r1(2, 0), r1(2, 1), r1(2, 2));
+        fcl::Transform3f pose(fR, fT);
+        m_objects[id].push_back(new fcl::CollisionObject(*fcl_model, pose));
+        std::cerr << "[" << m_profile.instance_name << "] Add model with index: " << index << std::endl;
+    }
 }
 #endif // USE_FCL
 
