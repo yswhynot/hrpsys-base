@@ -201,7 +201,8 @@ class CollisionDetector
 
 #ifdef USE_FCL
   std::vector<FCLModel *> m_FCLLinks;
-  fcl::BroadPhaseCollisionManager* m_col_manager;
+  fcl::BroadPhaseCollisionManager* m_col_manager_l;
+  fcl::BroadPhaseCollisionManager* m_col_manager_r;
   std::vector<fcl::CollisionObject*> m_objects[2];
   std::vector<std::string> m_link_names[2];
 #endif // USE_FCL

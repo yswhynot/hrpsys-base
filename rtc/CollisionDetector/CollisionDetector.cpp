@@ -204,7 +204,10 @@ RTC::ReturnCode_t CollisionDetector::onInitialize()
     }
 
 #ifdef USE_FCL
-    m_col_manager = new fcl::DynamicAABBTreeCollisionManager();
+    m_col_manager_l = new fcl::DynamicAABBTreeCollisionManager();
+    m_col_manager_r = new fcl::DynamicAABBTreeCollisionManager();
+    m_col_manager_l->registerObjects(m_objects[0]);
+    m_col_manager_r->registerObjects(m_objects[1]);
 #endif
 
     if ( prop["collision_loop"] != "" ) {
