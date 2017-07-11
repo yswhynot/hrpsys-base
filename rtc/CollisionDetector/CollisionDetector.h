@@ -10,6 +10,7 @@
 #ifndef COLLISION_DETECTOR_H
 #define COLLISION_DETECTOR_H
 
+#include <algorithm>
 #include <rtm/idl/BasicDataType.hh>
 #include "hrpsys/idl/HRPDataTypes.hh"
 #include <rtm/Manager.h>
@@ -33,6 +34,10 @@
 #include "FCLLinkPair.h"
 #include "CollisionDetectorService_impl.h"
 #include "../SoftErrorLimiter/beep.h"
+
+#include "fcl/broadphase/broadphase.h"
+#include "fcl/distance.h"
+#include "fcl/shape/geometric_shape_to_BVH_model.h"
 
 // Service implementation headers
 // <rtc-template block="service_impl_h">
@@ -193,9 +198,14 @@ class CollisionDetector
   GLbody *m_glbody;
 #endif // USE_HRPSYSUTIL
   std::vector<Vclip::Polyhedron *> m_VclipLinks;
+
 #ifdef USE_FCL
   std::vector<FCLModel *> m_FCLLinks;
+  fcl::BroadPhaseCollisionManager* m_col_manager;
+  std::vector<fcl::CollisionObject*> m_objects[2];
+  std::vector<std::string> m_link_names[2];
 #endif // USE_FCL
+
   std::vector<int> m_curr_collision_mask, m_init_collision_mask;
   bool m_use_limb_collision;
   bool m_use_viewer;
