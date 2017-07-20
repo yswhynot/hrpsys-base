@@ -363,7 +363,7 @@ RTC::ReturnCode_t CollisionDetector::onExecute(RTC::UniqueId ec_id)
         }
     }
     if (m_enable && m_qRefIn.isNew()) {
-    	m_qRefIn.read();
+        m_qRefIn.read();
 
         // check servo for collision beep sound
         bool has_servoOn = false;
@@ -374,7 +374,7 @@ RTC::ReturnCode_t CollisionDetector::onExecute(RTC::UniqueId ec_id)
 
         TimedPosture tp;
 
-    	assert(m_qRef.data.length() == m_robot->numJoints());
+        assert(m_qRef.data.length() == m_robot->numJoints());
 #ifdef USE_HRPSYSUTIL
         if ( m_use_viewer ) {
           for (unsigned int i=0; i<m_glbody->numLinks(); i++){
@@ -419,6 +419,7 @@ RTC::ReturnCode_t CollisionDetector::onExecute(RTC::UniqueId ec_id)
         m_safe_posture = true;
 
         // update pose of joints
+        // BUG HERE!!!!!!!!!!!!!
         updateJointPose(0);
         updateJointPose(1);
         m_col_manager_l->update();
@@ -1083,7 +1084,14 @@ void CollisionDetector::readCollisionList(std::string& input, int id) {
 
 void CollisionDetector::updateJointPose(int id) {
     std::vector<unsigned int>::iterator it;
+    std::cerr << "[" << m_profile.instance_name << "] in updateJointPose id: " << id << std::endl;
+    
     for(it = m_link_index[id].begin(); it != m_link_index[id].end(); it++) {
+        std::cerr << "[" << m_profile.instance_name << "] need update joint: " <<  m_robot->link(*it)->name << std::endl;
+    }
+    
+    for(it = m_link_index[id].begin(); it != m_link_index[id].end(); it++) {
+        std::cerr << "[" << m_profile.instance_name << "] updating joint: " <<  m_robot->link(*it)->name << std::endl;
         const hrp::Vector3&  p1 = m_robot->link(*it)->p;
         hrp::Matrix33 r1 = m_robot->link(*it)->attitude();
         fcl::Vec3f fT(p1(0), p1(1), p1(2));
@@ -1092,7 +1100,9 @@ void CollisionDetector::updateJointPose(int id) {
                       r1(2, 0), r1(2, 1), r1(2, 2));
         fcl::Transform3f pose(fR, fT);
         m_objects[id][*it]->setTransform(pose);
+        std::cerr << "[" << m_profile.instance_name << "] updated joint: " <<  m_robot->link(*it)->name << std::endl;
     }
+    std::cerr << "[" << m_profile.instance_name << "] finish updateJointPose id: " << id << std::endl;
 }
 
 #ifndef USE_HRPSYSUTIL
