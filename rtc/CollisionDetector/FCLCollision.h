@@ -1,5 +1,6 @@
 #include "fcl/collision_data.h"
 #include "fcl/collision.h"
+#include <iostream>
 
 namespace fcl
 {

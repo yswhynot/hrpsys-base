@@ -429,6 +429,7 @@ RTC::ReturnCode_t CollisionDetector::onExecute(RTC::UniqueId ec_id)
         if(m_collision_data.result.isCollision()) {
             m_safe_posture = false;
             std::copy(m_init_collision_mask.begin(), m_init_collision_mask.end(), m_curr_collision_mask.begin()); // copy init_collision_mask to curr_collision_mask
+            std::cerr << "[" << m_profile.instance_name << "] collision detected" << std::endl;
         }
         m_collision_data.result.clear();
 
@@ -514,10 +515,10 @@ RTC::ReturnCode_t CollisionDetector::onExecute(RTC::UniqueId ec_id)
 #endif
         }
         if ( DEBUGP ) {
-          std::cerr << "[" << m_profile.instance_name << "] check collisions for " << m_pair.size() << " pairs in " << (tm2.sec()-tm1.sec())*1000+(tm2.usec()-tm1.usec())/1000.0 
+          std::cerr << "[" << m_profile.instance_name << "] check collisions for " << m_objects[0].size() << " pairs in " << (tm2.sec()-tm1.sec())*1000+(tm2.usec()-tm1.usec())/1000.0 
                     << " [msec], safe = " << m_safe_posture << ", time = " << m_recover_time*m_dt << "[s], loop = " << m_loop_for_check << "/" << m_collision_loop << std::endl;
         }
-        if ( m_pair.size() == 0 && ( DEBUGP || (loop % ((int)(5/m_dt))) == 1) ) {
+        if ( (m_objects[0].size() == 0 || m_objects[1].size() == 0) && ( DEBUGP || (loop % ((int)(5/m_dt))) == 1) ) {
             std::cerr << "[" << m_profile.instance_name << "] CAUTION!! The robot is moving without checking self collision detection!!! please define collision_pair in configuration file" << std::endl;
         }
         if ( ! m_have_safe_posture && ! m_safe_posture ) {

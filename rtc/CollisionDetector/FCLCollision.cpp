@@ -4,6 +4,8 @@ namespace fcl {
 
 bool defaultCollisionFunction(CollisionObject* o1, CollisionObject* o2, void* cdata_)
 {
+  // std::cerr << "\n\nChecking collision...\n\n\n\n\n\n" << std::endl;
+  // BUG HERE: Never enter this function!!!!!!
   CollisionData* cdata = static_cast<CollisionData*>(cdata_);
   const CollisionRequest& request = cdata->request;
   CollisionResult& result = cdata->result;
