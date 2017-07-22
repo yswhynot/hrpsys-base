@@ -419,12 +419,10 @@ RTC::ReturnCode_t CollisionDetector::onExecute(RTC::UniqueId ec_id)
         m_safe_posture = true;
 
         // update pose of joints
-        // BUG HERE!!!!!!!!!!!!!
         updateJointPose(0);
         updateJointPose(1);
         m_col_manager_l->update();
         m_col_manager_r->update();
-        std::cerr << "[" << m_profile.instance_name << "] Updated pose" << std::endl;
         // check collision
         m_col_manager_l->collide(m_col_manager_r, &m_collision_data, fcl::defaultCollisionFunction);
         // if collision occurs
@@ -1084,14 +1082,9 @@ void CollisionDetector::readCollisionList(std::string& input, int id) {
 
 void CollisionDetector::updateJointPose(int id) {
     std::vector<unsigned int>::iterator it;
-    std::cerr << "[" << m_profile.instance_name << "] in updateJointPose id: " << id << std::endl;
     
-    for(it = m_link_index[id].begin(); it != m_link_index[id].end(); it++) {
-        std::cerr << "[" << m_profile.instance_name << "] need update joint: " <<  m_robot->link(*it)->name << std::endl;
-    }
-    
-    for(it = m_link_index[id].begin(); it != m_link_index[id].end(); it++) {
-        std::cerr << "[" << m_profile.instance_name << "] updating joint: " <<  m_robot->link(*it)->name << std::endl;
+    int i = 0;
+    for(it = m_link_index[id].begin(); it != m_link_index[id].end(); it++, i++) {
         const hrp::Vector3&  p1 = m_robot->link(*it)->p;
         hrp::Matrix33 r1 = m_robot->link(*it)->attitude();
         fcl::Vec3f fT(p1(0), p1(1), p1(2));
@@ -1099,10 +1092,8 @@ void CollisionDetector::updateJointPose(int id) {
                       r1(1, 0), r1(1, 1), r1(1, 2),
                       r1(2, 0), r1(2, 1), r1(2, 2));
         fcl::Transform3f pose(fR, fT);
-        m_objects[id][*it]->setTransform(pose);
-        std::cerr << "[" << m_profile.instance_name << "] updated joint: " <<  m_robot->link(*it)->name << std::endl;
+        m_objects[id][i]->setTransform(pose);
     }
-    std::cerr << "[" << m_profile.instance_name << "] finish updateJointPose id: " << id << std::endl;
 }
 
 #ifndef USE_HRPSYSUTIL
