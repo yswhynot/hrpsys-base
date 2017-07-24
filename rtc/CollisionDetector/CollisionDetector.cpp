@@ -423,9 +423,29 @@ RTC::ReturnCode_t CollisionDetector::onExecute(RTC::UniqueId ec_id)
         updateJointPose(1);
         m_col_manager_l->update();
         m_col_manager_r->update();
+
+        // check callback
+        fcl::DynamicAABBTreeCollisionManager::DynamicAABBNode* root1 = m_col_manager_l->getTree().getRoot();
+        fcl::DynamicAABBTreeCollisionManager::DynamicAABBNode* root2 = m_col_manager_r->getTree().getRoot();
+        if(root1->isLeaf() && root2->isLeaf())
+        {
+          std::cerr << "[" << m_profile.instance_name << "] in isLeaf" << std::endl;
+          if(!root1->bv.overlap(root2->bv))
+            std::cerr << "[" << m_profile.instance_name << "] in bv.overlap 1" << std::endl;
+        }
+        
+        // Stop here
+        if(!root1->bv.overlap(root2->bv)) 
+            std::cerr << "[" << m_profile.instance_name << "] in bv.overlap 2" << std::endl;;
+          
+        if(root2->isLeaf() || (!root1->isLeaf() && (root1->bv.size() > root2->bv.size())))
+        {
+          std::cerr << "[" << m_profile.instance_name << "] in size" << std::endl;
+        }
+
         // check collision
         m_col_manager_l->collide(m_col_manager_r, &m_collision_data, hrpsysCollisionFunction);
-        std::cerr << "collision objects: " << m_col_manager_l->size() << std::endl;
+        std::cerr << "[" << m_profile.instance_name << "] collision objects: " << m_col_manager_l->size() << std::endl;
         // if collision occurs
         if(m_collision_data.result.isCollision()) {
             m_safe_posture = false;

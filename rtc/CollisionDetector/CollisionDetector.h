@@ -37,6 +37,8 @@
 
 #include "FCLCollision.h"
 #include "fcl/broadphase/broadphase.h"
+#include "fcl/broadphase/broadphase_dynamic_AABB_tree.h"
+#include "fcl/math/transform.h"
 
 // Service implementation headers
 // <rtc-template block="service_impl_h">
@@ -204,8 +206,10 @@ class CollisionDetector
 
 #ifdef USE_FCL
   std::vector<FCLModel *> m_FCLLinks;
-  fcl::BroadPhaseCollisionManager* m_col_manager_l;
-  fcl::BroadPhaseCollisionManager* m_col_manager_r;
+  // fcl::BroadPhaseCollisionManager* m_col_manager_l;
+  // fcl::BroadPhaseCollisionManager* m_col_manager_r;
+  fcl::DynamicAABBTreeCollisionManager* m_col_manager_l;
+  fcl::DynamicAABBTreeCollisionManager* m_col_manager_r;
   std::vector<fcl::CollisionObject*> m_objects[2];
   std::vector<std::string> m_link_names[2];
   CollisionData m_collision_data;
