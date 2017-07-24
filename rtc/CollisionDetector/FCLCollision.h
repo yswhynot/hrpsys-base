@@ -1,9 +1,5 @@
 #include "fcl/collision_data.h"
 #include "fcl/collision.h"
-#include <iostream>
-
-namespace fcl
-{
 
 struct CollisionData
 {
@@ -13,14 +9,13 @@ struct CollisionData
   }
 
   /// @brief Collision request
-  CollisionRequest request;
+  fcl::CollisionRequest request;
 
   /// @brief Collision result
-  CollisionResult result;
+  fcl::CollisionResult result;
 
   /// @brief Whether the collision iteration can stop
   bool done;
 };
 
-bool defaultCollisionFunction(CollisionObject* o1, CollisionObject* o2, void* cdata_);
-}
+bool hrpsysCollisionFunction(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* cdata_);

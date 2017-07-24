@@ -1,18 +1,19 @@
 #include "FCLCollision.h"
+#include <iostream>
 
-namespace fcl {
-
-bool defaultCollisionFunction(CollisionObject* o1, CollisionObject* o2, void* cdata_)
+bool hrpsysCollisionFunction(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* cdata_)
 {
-  // std::cerr << "\n\nChecking collision...\n\n\n\n\n\n" << std::endl;
+  std::cout << "\n\nChecking collision...\n\n\n\n\n\n" << std::endl;
   // BUG HERE: Never enter this function!!!!!!
   CollisionData* cdata = static_cast<CollisionData*>(cdata_);
-  const CollisionRequest& request = cdata->request;
-  CollisionResult& result = cdata->result;
+  const fcl::CollisionRequest& request = cdata->request;
+  fcl::CollisionResult& result = cdata->result;
 
   if(cdata->done) return true;
 
-  collide(o1, o2, request, result);
+  fcl::collide(o1, o2, request, result);
+
+  std::cout << "num collision: " << result.numContacts() << std::endl;
 
   if(!request.enable_cost && (result.isCollision()) && (result.numContacts() >= request.num_max_contacts))
     cdata->done = true;
@@ -20,4 +21,3 @@ bool defaultCollisionFunction(CollisionObject* o1, CollisionObject* o2, void* cd
   return cdata->done;
 }
 
-}

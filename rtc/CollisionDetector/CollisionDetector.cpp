@@ -424,7 +424,8 @@ RTC::ReturnCode_t CollisionDetector::onExecute(RTC::UniqueId ec_id)
         m_col_manager_l->update();
         m_col_manager_r->update();
         // check collision
-        m_col_manager_l->collide(m_col_manager_r, &m_collision_data, fcl::defaultCollisionFunction);
+        m_col_manager_l->collide(m_col_manager_r, &m_collision_data, hrpsysCollisionFunction);
+        std::cerr << "collision objects: " << m_col_manager_l->size() << std::endl;
         // if collision occurs
         if(m_collision_data.result.isCollision()) {
             m_safe_posture = false;
@@ -725,7 +726,7 @@ bool CollisionDetector::enable(void)
     m_col_manager_l->update();
     m_col_manager_r->update();
     // check collision
-    m_col_manager_l->collide(m_col_manager_r, &m_collision_data, fcl::defaultCollisionFunction);
+    m_col_manager_l->collide(m_col_manager_r, &m_collision_data, hrpsysCollisionFunction);
     // if collision occurs
     if(m_collision_data.result.isCollision()) {
         return false;
